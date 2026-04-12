@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Happy Birthday!</title>
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,391 +15,373 @@
       font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
       color: #fff;
       cursor: default;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(78, 22, 120, 0.4) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 30%, rgba(120, 20, 80, 0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(20, 40, 120, 0.3) 0%, transparent 60%),
-        #0a0a1a;
+      background: #030108;
     }
 
-    /* ─── Canvas VFX layers ─── */
+    /* ─── Animated gradient background ─── */
+    .bg-aurora {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(180, 30, 120, 0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 25% 60%, rgba(80, 20, 180, 0.3) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 50% at 75% 35%, rgba(255, 50, 100, 0.25) 0%, transparent 60%),
+        radial-gradient(ellipse 90% 40% at 50% 80%, rgba(255, 180, 0, 0.15) 0%, transparent 50%);
+      animation: auroraPulse 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes auroraPulse {
+      0%   { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 1;   transform: scale(1.08); }
+    }
+
+    /* ─── Light rays behind text ─── */
+    .light-rays {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 200vmax;
+      height: 200vmax;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      background: conic-gradient(
+        from 0deg,
+        transparent 0deg, rgba(255, 107, 157, 0.06) 8deg, transparent 16deg,
+        transparent 24deg, rgba(255, 215, 0, 0.05) 32deg, transparent 40deg,
+        transparent 48deg, rgba(155, 89, 182, 0.06) 56deg, transparent 64deg,
+        transparent 72deg, rgba(255, 107, 157, 0.05) 80deg, transparent 88deg,
+        transparent 96deg, rgba(255, 215, 0, 0.06) 104deg, transparent 112deg,
+        transparent 120deg, rgba(155, 89, 182, 0.05) 128deg, transparent 136deg,
+        transparent 144deg, rgba(255, 107, 157, 0.06) 152deg, transparent 160deg,
+        transparent 168deg, rgba(255, 215, 0, 0.05) 176deg, transparent 184deg,
+        transparent 192deg, rgba(155, 89, 182, 0.06) 200deg, transparent 208deg,
+        transparent 216deg, rgba(255, 107, 157, 0.05) 224deg, transparent 232deg,
+        transparent 240deg, rgba(255, 215, 0, 0.06) 248deg, transparent 256deg,
+        transparent 264deg, rgba(155, 89, 182, 0.05) 272deg, transparent 280deg,
+        transparent 288deg, rgba(255, 107, 157, 0.06) 296deg, transparent 304deg,
+        transparent 312deg, rgba(255, 215, 0, 0.05) 320deg, transparent 328deg,
+        transparent 336deg, rgba(155, 89, 182, 0.06) 344deg, transparent 360deg
+      );
+      animation: raysRotate 20s linear infinite;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .light-rays.active {
+      animation: raysRotate 20s linear infinite, raysIn 2s 0.6s ease forwards;
+    }
+
+    @keyframes raysRotate {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    @keyframes raysIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ─── Canvas VFX ─── */
     .fx-canvas {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
+      z-index: 8;
     }
-    #fx-bg    { z-index: 0; }
-    #fx-front { z-index: 10; }
 
     /* ─── Close button ─── */
     #close-btn {
       position: fixed;
-      top: 20px;
-      right: 28px;
+      top: 22px;
+      right: 30px;
       z-index: 100;
-      width: 44px;
-      height: 44px;
-      border: 2px solid rgba(255,255,255,0.12);
+      width: 48px;
+      height: 48px;
+      border: 2px solid rgba(255,255,255,0.08);
       border-radius: 50%;
-      background: rgba(255,255,255,0.05);
-      color: rgba(255,255,255,0.5);
-      font-size: 22px;
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.35);
+      font-size: 24px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.25s ease;
-      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(12px);
     }
     #close-btn:hover {
-      background: rgba(255,107,157,0.18);
-      border-color: rgba(255,107,157,0.4);
+      background: rgba(255,107,157,0.15);
+      border-color: rgba(255,107,157,0.35);
       color: #FF6B9D;
-      transform: scale(1.12);
+      transform: scale(1.15) rotate(90deg);
     }
 
-    /* ─── Main celebration ─── */
+    /* ─── Main celebration content ─── */
     .celebration {
-      position: relative;
+      position: fixed;
+      inset: 0;
       z-index: 5;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 36px 20px;
+      gap: 0;
       opacity: 0;
-      animation: fadeIn 1.2s 0.3s ease forwards;
     }
 
-    /* ─── Title section ─── */
-    .title-section {
-      text-align: center;
-      margin-bottom: 40px;
+    .celebration.active {
+      animation: celebrationIn 0.4s 0.1s ease forwards;
     }
 
-    .title {
-      font-family: 'Dancing Script', 'Georgia', cursive;
-      font-size: clamp(3rem, 8vw, 6.5rem);
-      font-weight: 700;
-      background: linear-gradient(135deg, #FF6B9D, #FFD700, #E056C1, #9B59B6, #FF6B9D);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradientShift 4s ease infinite, titleIn 0.9s 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-      filter: drop-shadow(0 0 40px rgba(255, 107, 157, 0.35));
-      line-height: 1.2;
-    }
-
-    .name {
-      font-family: 'Outfit', sans-serif;
-      font-size: clamp(1.6rem, 4vw, 3.2rem);
-      font-weight: 800;
-      color: #FFD700;
-      text-shadow: 0 0 28px rgba(255, 215, 0, 0.45);
-      margin-top: 10px;
-      opacity: 0;
-      animation: fadeInUp 0.7s 1.3s ease forwards;
-      letter-spacing: 0.06em;
-    }
-
-    .subtitle {
-      font-size: 1rem;
-      color: rgba(255,255,255,0.35);
-      font-weight: 500;
-      margin-top: 6px;
-      opacity: 0;
-      animation: fadeIn 0.6s 1.8s ease forwards;
-    }
-
-    /* ─── Cards grid ─── */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      max-width: 720px;
-      width: 100%;
-      padding: 0 16px;
-    }
-
-    @media (max-width: 700px) {
-      .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-        max-width: 380px;
-      }
-    }
-
-    /* ─── 3D Flip Card ─── */
-    .card {
-      perspective: 900px;
-      cursor: pointer;
-      opacity: 0;
-      transform: translateY(50px);
-      transition: transform 0.2s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-    }
-
-    .card.revealed:hover {
-      transform: none;
-      cursor: default;
-    }
-
-    .card-inner {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 3 / 4;
-      transition: transform 0.75s cubic-bezier(0.4, 0.2, 0.2, 1);
-      transform-style: preserve-3d;
-    }
-
-    .card.flipped .card-inner {
-      transform: rotateY(180deg);
-    }
-
-    .card-face {
-      position: absolute;
-      inset: 0;
-      backface-visibility: hidden;
-      border-radius: 18px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      overflow: hidden;
-    }
-
-    /* Envelope front */
-    .card-front {
-      background: var(--card-bg, rgba(255,255,255,0.05));
-      border: 1.5px solid var(--card-border, rgba(255,255,255,0.08));
-      backdrop-filter: blur(14px);
-      gap: 10px;
-    }
-
-    .card-front::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 42%;
-      background: var(--card-flap, rgba(255,255,255,0.03));
-      clip-path: polygon(0 0, 50% 65%, 100% 0);
-      pointer-events: none;
-    }
-
-    .card-front .card-emoji {
-      font-size: 32px;
-      animation: float 3s var(--delay, 0s) ease-in-out infinite;
-      z-index: 2;
-    }
-
-    .card-front .card-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      z-index: 2;
-    }
-
-    .card-front .card-seal {
-      position: absolute;
-      bottom: 16px;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--card-accent, #FF6B9D);
-      opacity: 0.6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-    }
-
-    /* Letter back */
-    .card-back {
-      background: linear-gradient(160deg, var(--card-back-start, #1a1a3e), var(--card-back-end, #2d1b4e));
-      transform: rotateY(180deg);
-      border: 1.5px solid var(--card-accent, rgba(255,107,157,0.25));
-      padding: 18px 14px;
-      text-align: center;
-      justify-content: space-between;
-      box-shadow: inset 0 0 40px rgba(0,0,0,0.15);
-    }
-
-    .card-back .card-quote-mark {
-      font-family: 'Dancing Script', cursive;
-      font-size: 32px;
-      color: var(--card-accent, #FF6B9D);
-      opacity: 0.5;
-      line-height: 1;
-    }
-
-    .card-back .card-msg {
-      font-size: 12px;
-      line-height: 1.55;
-      color: rgba(255,255,255,0.88);
-      font-weight: 500;
-      flex: 1;
-      display: flex;
-      align-items: center;
-    }
-
-    .card-back .card-sig {
-      font-family: 'Dancing Script', cursive;
-      font-size: 15px;
-      color: var(--card-accent, #FF6B9D);
-    }
-
-    /* ─── Progress ─── */
-    .progress {
-      margin-top: 28px;
-      font-size: 0.82rem;
-      color: rgba(255,255,255,0.35);
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      opacity: 0;
-      animation: fadeIn 0.5s 3s ease forwards;
-    }
-
-    .progress span {
-      color: #FFD700;
-    }
-
-    /* ─── Finale overlay ─── */
-    .finale {
-      position: fixed;
-      inset: 0;
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(10, 10, 26, 0.94);
-      backdrop-filter: blur(24px);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.8s ease;
-    }
-
-    .finale.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .finale-emoji {
-      font-size: 48px;
-      margin-bottom: 24px;
-      animation: float 2s ease-in-out infinite;
-    }
-
-    .finale-title {
-      font-family: 'Dancing Script', cursive;
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      background: linear-gradient(135deg, #FFD700, #FF6B9D);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 16px;
-      text-align: center;
-      animation: pulseGlow 3s ease-in-out infinite;
-    }
-
-    .finale-text {
-      font-size: clamp(1rem, 2.5vw, 1.2rem);
-      text-align: center;
-      color: rgba(255,255,255,0.7);
-      max-width: 520px;
-      line-height: 1.7;
-      margin-bottom: 36px;
-    }
-
-    .finale-close {
-      padding: 14px 40px;
-      border: 2px solid rgba(255, 215, 0, 0.25);
-      border-radius: 40px;
-      background: rgba(255, 215, 0, 0.06);
-      color: #FFD700;
-      font-family: 'Outfit', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.25s;
-      letter-spacing: 0.04em;
-    }
-
-    .finale-close:hover {
-      background: rgba(255, 215, 0, 0.14);
-      border-color: rgba(255, 215, 0, 0.45);
-      transform: scale(1.06);
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
-    }
-
-    /* ─── Keyframes ─── */
-    @keyframes fadeIn {
+    @keyframes celebrationIn {
       from { opacity: 0; }
       to   { opacity: 1; }
     }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
+
+    /* ─── HAPPY BIRTHDAY text ─── */
+    .happy-text {
+      font-size: clamp(2.8rem, 6.5vw, 5.5rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: center;
+      line-height: 1;
+      color: transparent;
+      background: linear-gradient(
+        135deg,
+        #FF6B9D 0%, #FF3F7A 15%, #FFD700 30%, #FFAA00 45%,
+        #E056C1 55%, #9B59B6 70%, #FF6B9D 85%, #FFD700 100%
+      );
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation:
+        gradientFlow 3s ease infinite,
+        textDropIn 0.7s 0.3s cubic-bezier(0.22, 1.5, 0.36, 1) both;
+      filter: drop-shadow(0 0 60px rgba(255, 107, 157, 0.5))
+              drop-shadow(0 0 120px rgba(255, 215, 0, 0.25));
+      position: relative;
     }
-    @keyframes titleIn {
-      from { opacity: 0; transform: scale(0.2) rotate(-5deg); }
-      60%  { transform: scale(1.06) rotate(1deg); }
-      to   { opacity: 1; transform: scale(1) rotate(0); }
+
+    /* ─── NAME — the HUGE exciting part ─── */
+    .name-container {
+      margin-top: 8px;
+      overflow: visible;
+      position: relative;
     }
-    @keyframes gradientShift {
+
+    .name-text {
+      font-size: clamp(4rem, 12vw, 10rem);
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      position: relative;
+      display: inline-block;
+    }
+
+    .name-letter {
+      display: inline-block;
+      color: transparent;
+      background: linear-gradient(
+        180deg,
+        #FFD700 0%, #FFAA00 30%, #FF6B9D 60%, #E056C1 100%
+      );
+      background-size: 100% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation:
+        letterDrop 0.5s cubic-bezier(0.22, 1.6, 0.36, 1) both,
+        letterColorShift 4s ease-in-out infinite alternate,
+        letterBounce 2s ease-in-out infinite;
+      filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6))
+              drop-shadow(0 4px 20px rgba(255, 80, 120, 0.4));
+      text-shadow: none;
+      position: relative;
+    }
+
+    .name-letter:nth-child(odd) {
+      animation-delay: var(--d), 0s, calc(var(--i) * 0.15s);
+    }
+    .name-letter:nth-child(even) {
+      animation-delay: var(--d), 2s, calc(var(--i) * 0.15s + 0.08s);
+    }
+
+    @keyframes letterDrop {
+      0%   { opacity: 0; transform: translateY(-80px) scale(0.3) rotate(-15deg); }
+      60%  { transform: translateY(8px) scale(1.12) rotate(3deg); }
+      80%  { transform: translateY(-4px) scale(0.98) rotate(-1deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+    }
+
+    @keyframes letterColorShift {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 0% 100%; }
+    }
+
+    @keyframes letterBounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+
+    /* ─── Exclamation marks ─── */
+    .exclaim-container {
+      display: inline-block;
+      position: relative;
+    }
+
+    .exclaim {
+      display: inline-block;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      font-weight: 900;
+      color: #FFD700;
+      filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
+      animation:
+        exclaimPop 0.4s cubic-bezier(0.22, 1.8, 0.36, 1) both,
+        exclaimShake 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes exclaimPop {
+      0%   { opacity: 0; transform: scale(0) rotate(-30deg); }
+      70%  { transform: scale(1.3) rotate(8deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0); }
+    }
+
+    @keyframes exclaimShake {
+      0%   { transform: rotate(-3deg) translateY(0); }
+      100% { transform: rotate(3deg) translateY(-5px); }
+    }
+
+    /* ─── Sparkle elements ─── */
+    .sparkle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #FFD700;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: sparklePulse 1.2s ease-in-out infinite;
+      box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.6);
+    }
+
+    @keyframes sparklePulse {
+      0%, 100% { opacity: 0; transform: scale(0); }
+      50%      { opacity: 1; transform: scale(1.5); }
+    }
+
+    /* ─── Floating emojis ─── */
+    .floating-emoji {
+      position: fixed;
+      font-size: 32px;
+      pointer-events: none;
+      z-index: 6;
+      animation: emojiFloat linear forwards;
+      opacity: 0;
+    }
+
+    @keyframes emojiFloat {
+      0%   { opacity: 0; transform: translateY(0) rotate(0deg) scale(0.5); }
+      10%  { opacity: 1; transform: translateY(-10vh) rotate(15deg) scale(1); }
+      90%  { opacity: 0.8; transform: translateY(-85vh) rotate(-20deg) scale(1.1); }
+      100% { opacity: 0; transform: translateY(-100vh) rotate(30deg) scale(0.8); }
+    }
+
+    /* ─── Screen shake on entrance ─── */
+    .screen-shake {
+      animation: shakeIt 0.5s 0.2s ease-out;
+    }
+
+    @keyframes shakeIt {
+      0%   { transform: translate(0, 0); }
+      15%  { transform: translate(-4px, 2px); }
+      30%  { transform: translate(4px, -3px); }
+      45%  { transform: translate(-3px, 3px); }
+      60%  { transform: translate(3px, -2px); }
+      75%  { transform: translate(-2px, 1px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    /* ─── Closing transition ─── */
+    .celebration.closing {
+      animation: closeOut 0.6s ease-in forwards;
+    }
+
+    .bg-aurora.closing,
+    .light-rays.closing,
+    .fx-canvas.closing {
+      animation: fadeOutQuick 0.5s ease-in forwards;
+    }
+
+    @keyframes closeOut {
+      0%   { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.15); filter: blur(20px); }
+    }
+
+    @keyframes fadeOutQuick {
+      to { opacity: 0; }
+    }
+
+    @keyframes gradientFlow {
       0%   { background-position: 0% 50%; }
       50%  { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50%      { transform: translateY(-8px); }
+
+    /* ─── Subtitle ─── */
+    .subtitle {
+      font-size: clamp(0.9rem, 2vw, 1.2rem);
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.3);
+      margin-top: 20px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeInUp 0.6s 2.2s ease forwards;
     }
-    @keyframes pulseGlow {
-      0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.2)); }
-      50%      { filter: drop-shadow(0 0 50px rgba(255, 215, 0, 0.5)); }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(50px) scale(0.88); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+
+    /* ─── Glow ring pulse behind the name ─── */
+    .glow-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 60vw;
+      height: 60vw;
+      max-width: 700px;
+      max-height: 700px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255, 107, 157, 0.12) 0%, transparent 70%);
+      z-index: -1;
+      pointer-events: none;
+      animation: glowPulse 3s ease-in-out infinite alternate;
     }
-    @keyframes cardShake {
-      0%, 100% { transform: rotate(0); }
-      25%      { transform: rotate(-2deg); }
-      75%      { transform: rotate(2deg); }
+
+    @keyframes glowPulse {
+      0%   { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
+      100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
     }
   </style>
 </head>
 <body>
-  <canvas id="fx-bg" class="fx-canvas"></canvas>
-  <canvas id="fx-front" class="fx-canvas"></canvas>
+  <div class="bg-aurora" id="bg-aurora"></div>
+  <div class="light-rays" id="light-rays"></div>
+  <canvas id="fx" class="fx-canvas"></canvas>
 
-  <button id="close-btn" title="Close celebration">×</button>
+  <button id="close-btn" title="Close">×</button>
 
   <div class="celebration" id="celebration">
-    <div class="title-section">
-      <h1 class="title" id="title">Happy Birthday</h1>
-      <h2 class="name" id="name"></h2>
-      <p class="subtitle" id="subtitle">Click the letters below to open your wishes ✨</p>
+    <div class="glow-ring"></div>
+    <div class="happy-text" id="happy-text">HAPPY BIRTHDAY</div>
+    <div class="name-container" id="name-container">
+      <div class="name-text" id="name-text"></div>
     </div>
-
-    <div class="cards-grid" id="cards"></div>
-
-    <p class="progress" id="progress">Wishes opened: <span id="progress-count">0</span> / <span id="progress-total">8</span></p>
-  </div>
-
-  <div class="finale" id="finale">
-    <div class="finale-emoji">🎂</div>
-    <h2 class="finale-title" id="finale-title">You're truly special.</h2>
-    <p class="finale-text" id="finale-text">From the strongest sorcerer, with love. May every moment of this year bring you joy.</p>
-    <button class="finale-close" id="finale-close">Close Celebration ✦</button>
+    <p class="subtitle" id="subtitle">from the strongest sorcerer ✦</p>
   </div>
 
   <script src="./birthday.js"></script>
