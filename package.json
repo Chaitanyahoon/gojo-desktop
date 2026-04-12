@@ -1,0 +1,56 @@
+{
+  "name": "gojo-pet",
+  "version": "1.0.0",
+  "description": "Cross-platform Gojo Satoru desktop virtual pet built with Electron and Canvas.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.gojopet.app",
+    "productName": "Gojo Satoru Pet",
+    "copyright": "Copyright © 2026",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Gojo Pet"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/electron-builder/**",
+      "!.git/**",
+      "!**/gojo-pet.log"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "dependencies": {
+    "auto-launch": "^5.0.6",
+    "electron": "^37.2.0",
+    "electron-store": "^10.1.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  }
+}

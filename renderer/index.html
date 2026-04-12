@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gojo Pet</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: transparent;
+        user-select: none;
+        font-family: Consolas, monospace;
+      }
+
+      #stage {
+        position: relative;
+        width: 120px;
+        height: 180px;
+        background: transparent;
+      }
+
+      canvas {
+        position: absolute;
+        inset: 0;
+        image-rendering: pixelated;
+        background: transparent;
+      }
+
+      #particles {
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <canvas id="pet" width="120" height="180"></canvas>
+      <canvas id="particles" width="120" height="180"></canvas>
+    </div>
+
+    <script src="./quotes.js"></script>
+    <script src="./stats.js"></script>
+    <script src="./animator.js"></script>
+    <script src="./physics.js"></script>
+    <script src="./behavior.js"></script>
+    <script src="./particles.js"></script>
+    <script src="./sprite.js"></script>
+    <script src="./pet.js"></script>
+  </body>
+</html>
