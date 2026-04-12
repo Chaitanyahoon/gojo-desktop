@@ -56,6 +56,7 @@ let bubbleWindow = null;
 let settingsWindow = null;
 let chatWindow = null;
 let hudWindow = null;
+let birthdayWindow = null;
 let tray = null;
 let isQuitting = false;
 let bubbleHideTimer = null;
@@ -292,6 +293,38 @@ function createHudWindow() {
   hudWindow.loadFile(path.join(__dirname, "renderer/hud.html"));
 }
 
+function createBirthdayWindow() {
+  if (birthdayWindow && !birthdayWindow.isDestroyed()) {
+    birthdayWindow.focus();
+    return;
+  }
+
+  const display = screen.getPrimaryDisplay();
+
+  birthdayWindow = new BrowserWindow({
+    width: display.workArea.width,
+    height: display.workArea.height,
+    x: display.workArea.x,
+    y: display.workArea.y,
+    frame: false,
+    fullscreen: true,
+    backgroundColor: "#0a0a1a",
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  birthdayWindow.setAlwaysOnTop(true, "screen-saver");
+  birthdayWindow.loadFile(path.join(__dirname, "birthday/birthday.html"));
+  birthdayWindow.on("closed", () => {
+    birthdayWindow = null;
+  });
+}
+
 function createSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.show();
@@ -508,7 +541,14 @@ function showPetContextMenu() {
     { type: "separator" },
     { label: "Sleep", click: () => sendToWindow(petWindow, "menu:action", "sleep") },
     { label: "Wake Up", click: () => sendToWindow(petWindow, "menu:action", "wake") },
-    { label: "🎂 Happy Birthday", click: () => sendToWindow(petWindow, "menu:action", "birthday") },
+    {
+      label: "🎂 Happy Birthday",
+      click: () => {
+        sendToWindow(petWindow, "menu:action", "birthday");
+        // Delay to let the popper animation play first, then open fullscreen celebration
+        setTimeout(() => createBirthdayWindow(), 1500);
+      },
+    },
     { type: "separator" },
     {
       label: "Settings...",
@@ -630,6 +670,20 @@ function registerIpc() {
     sendToWindow(hudWindow, "hud:show", stats);
     return true;
   });
+  handleIpc("birthday:get-data", () => {
+    const s = getSettings();
+    return {
+      name: s.birthdayName || "",
+      message: s.birthdayMessage || "",
+    };
+  });
+  handleIpc("birthday:close", () => {
+    if (birthdayWindow && !birthdayWindow.isDestroyed()) {
+      birthdayWindow.close();
+    }
+    return true;
+  });
+
   handleIpc("hud:hide", () => {
     if (!isWindowAvailable(hudWindow)) return true;
     sendToWindow(hudWindow, "hud:hide");

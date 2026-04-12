@@ -38,6 +38,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onHudUpdate: (callback) => ipcRenderer.on("hud:update", (_, stats) => callback(stats)),
   // Proactive AI
   proactiveAI: () => ipcRenderer.invoke("ai:proactive"),
+  // Birthday celebration
+  getBirthdayData: () => ipcRenderer.invoke("birthday:get-data"),
+  closeBirthday: () => ipcRenderer.invoke("birthday:close"),
 });
 
 window.onerror = (message, source, lineno, colno, error) => {
