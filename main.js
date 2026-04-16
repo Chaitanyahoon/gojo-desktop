@@ -147,20 +147,21 @@ function getInitialPetPosition() {
 }
 
 function createTrayIcon() {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-      <rect width="64" height="64" rx="14" fill="#141423"/>
-      <circle cx="32" cy="26" r="15" fill="#fddcb5"/>
-      <path d="M17 22c4-10 10-15 15-15 7 0 13 4 16 16-4-4-8-6-14-6-7 0-11 2-17 5z" fill="#f8f8f8"/>
-      <rect x="18" y="24" width="28" height="8" rx="4" fill="#1a1a2e"/>
-      <path d="M24 42h16l4 12H20z" fill="#eeeeee"/>
-      <path d="M22 46h20" stroke="#9b59b6" stroke-width="3" stroke-linecap="round"/>
-    </svg>
-  `;
-  return nativeImage.createFromDataURL(
-    `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
-  );
+  // Load PNG from assets — SVG data URLs don't render on Windows tray
+  const trayPngPath = path.join(__dirname, "assets", "tray32.png");
+  if (require("fs").existsSync(trayPngPath)) {
+    return nativeImage.createFromPath(trayPngPath);
+  }
+  // Fallback: try the main icon
+  const iconPath = path.join(__dirname, "assets", "icon.png");
+  if (require("fs").existsSync(iconPath)) {
+    const img = nativeImage.createFromPath(iconPath);
+    return img.resize({ width: 32, height: 32 });
+  }
+  // Last resort: 1px transparent
+  return nativeImage.createEmpty();
 }
+
 
 async function syncAutoLaunch(enabled) {
   try {
