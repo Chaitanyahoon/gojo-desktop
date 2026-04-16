@@ -25,6 +25,7 @@
   let recentDrag = false;
   let singleClickTimer = null;
   let previousState = null;
+  let hollowPurpleNext = false;
   
   // New interaction states
   let globalCursor = null;
@@ -40,6 +41,9 @@
   // Proactive AI
   let proactiveAITimer = null;
   let lastAIMessageAt = 0;
+
+  // Rizz mode
+  let rizzTimer = null;
 
   // HUD
   let hudVisible = false;
@@ -89,6 +93,33 @@
       return null;
     }
     return anchor;
+  }
+
+  function pickRizz() {
+    const pool = ns.QUOTES.rizz;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  // Returns a rizz quote if rizz mode is on, otherwise returns the given fallback text
+  function rizzOr(fallback) {
+    return settings?.rizzMode ? pickRizz() : fallback;
+  }
+
+  function startRizzTimer() {
+    stopRizzTimer();
+    if (!settings?.rizzMode) return;
+    function fire() {
+      if (!settings?.rizzMode) return;
+      sayText(pickRizz());
+      const delay = 8000 + Math.random() * 7000;
+      rizzTimer = setTimeout(fire, delay);
+    }
+    const initDelay = 2000 + Math.random() * 3000;
+    rizzTimer = setTimeout(fire, initDelay);
+  }
+
+  function stopRizzTimer() {
+    if (rizzTimer) { clearTimeout(rizzTimer); rizzTimer = null; }
   }
 
   function say(pool, text = null) {
@@ -155,8 +186,18 @@
     const now = performance.now();
     animator.noteInteraction(now);
 
-    if (action === "challenge" || action === "infinity" || action === "domain") {
-      animator.request(ns.PET_STATES.ABILITY);
+    if (action === "domain") {
+      animator.request(ns.PET_STATES.ABILITY, { force: true });
+      sayText("Domain Expansion: Unlimited Void.");
+      spawnBurst("star", 10);
+    } else if (action === "infinity") {
+      animator.request(ns.PET_STATES.INFINITY, { force: true });
+      sayText("Infinity.");
+    } else if (action === "challenge") {
+      hollowPurpleNext = true;
+      animator.request(ns.PET_STATES.FALL, { force: true });
+      sayText("Hollow Purple.");
+      spawnBurst("star", 12);
     } else if (action === "feed") {
       spawnBurst("food", 6);
       sayText("Yum.");
@@ -207,26 +248,34 @@
     previousState = state;
 
     if (state === ns.PET_STATES.WAVE) {
-      sayText("Strongest.");
+      sayText(rizzOr("Strongest."));
     } else if (state === ns.PET_STATES.GLASSES) {
-      sayText("Looking sharp.");
+      sayText(rizzOr("Looking sharp."));
     } else if (state === ns.PET_STATES.ABILITY) {
       spawnBurst("star", 8);
-      sayText("Unlimited Void.");
+      sayText(rizzOr("Unlimited Void."));
+    } else if (state === ns.PET_STATES.INFINITY) {
+      sayText(rizzOr("Infinity."));
     } else if (state === ns.PET_STATES.SLEEP_TRANSITION) {
       say("sleep");
     } else if (state === ns.PET_STATES.WAKE) {
-      sayText("Back already?");
+      sayText(rizzOr("Back already?"));
     } else if (state === ns.PET_STATES.STRETCH) {
-      sayText("*stretches*");
+      sayText(rizzOr("*stretches*"));
     } else if (state === ns.PET_STATES.LOOK_AROUND) {
-      sayText("Where did you go?");
+      sayText(rizzOr("Where did you go?"));
     } else if (state === ns.PET_STATES.PHONE) {
-      sayText("Checking messages...");
+      sayText(settings?.rizzMode ? "Texting you? I wish." : "Checking messages...");
     } else if (state === ns.PET_STATES.FALL) {
-      sayText("Whoa!");
+      if (hollowPurpleNext) {
+        hollowPurpleNext = false;
+      } else {
+        sayText(rizzOr("Whoa!"));
+      }
     } else if (state === ns.PET_STATES.PICKUP) {
-      sayText("Mine now.");
+      sayText(rizzOr("Mine now."));
+    } else if (state === ns.PET_STATES.DANCE) {
+      sayText(settings?.rizzMode ? "Dance with me. Just once." : "Can't stop.");
     }
   }
 
@@ -432,15 +481,19 @@
       }
       event.preventDefault();
       setMousePassthrough(false);
-      window.electronAPI.showContextMenu();
+      window.electronAPI.showContextMenu(animator.isSleeping());
     });
 
     window.electronAPI.onMenuAction(handleMenuAction);
     window.electronAPI.onSettingsUpdated((nextSettings) => {
+      const wasRizz = settings?.rizzMode;
       settings = { ...settings, ...nextSettings };
       if (!settings.showSpeechBubbles) {
         window.electronAPI.hideBubble();
       }
+      // Start/stop rizz timer on toggle
+      if (settings.rizzMode && !wasRizz) startRizzTimer();
+      if (!settings.rizzMode && wasRizz) stopRizzTimer();
     });
     window.electronAPI.onEnvironmentUpdated((nextEnvironment) => {
       environment = nextEnvironment;
@@ -458,6 +511,8 @@
 
     bindEvents();
     animator.start(performance.now());
+    // Kick off rizz timer if already enabled at startup
+    if (settings.rizzMode) startRizzTimer();
     
     // Cursor loop
     setInterval(async () => {
@@ -465,6 +520,8 @@
     }, 150);
     
     // Stats decay and sync loop (every 60 seconds)
+    let lastHungerWarn = 0;
+    let lastEnergyWarn = 0;
     setInterval(() => {
         if (!stats) return;
         stats.hunger = Math.max(0, stats.hunger - 2);
@@ -473,6 +530,17 @@
         // Sleep restores energy
         if (animator.isSleeping()) {
             stats.energy = Math.min(100, stats.energy + 5);
+        } else {
+            const now = performance.now();
+            if (stats.hunger <= 10 && now - lastHungerWarn > 60000 * 15 && canShowBubble()) {
+                sayText("I'm starving over here. Feeding time.");
+                lastHungerWarn = now;
+                animator.request(ns.PET_STATES.LOOK_AROUND);
+            } else if (stats.energy <= 15 && now - lastEnergyWarn > 60000 * 15 && canShowBubble()) {
+                sayText("I think it's time for a nap.");
+                lastEnergyWarn = now;
+                animator.request(ns.PET_STATES.STRETCH);
+            }
         }
         
         window.electronAPI.updateStats({ hunger: stats.hunger, energy: stats.energy, mood: stats.mood });
@@ -508,6 +576,13 @@
       }, delayMs);
     }
     scheduleProactiveAI();
+
+    // Time-of-day startup greeting (fires once after 4 seconds)
+    setTimeout(() => {
+      if (!canShowBubble()) return;
+      const pool = ns.pickContextualPool ? ns.pickContextualPool(stats) : "idle";
+      say(pool);
+    }, 4000);
 
     initAudio();
     requestAnimationFrame(loop);

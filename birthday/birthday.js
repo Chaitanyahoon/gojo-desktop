@@ -1,52 +1,152 @@
 (() => {
-  // ─── Config ───
-  const CONFETTI_COLORS = [
-    "#FF6B9D", "#FFD700", "#9B59B6", "#3498DB", "#2ECC71",
-    "#E74C3C", "#F39C12", "#1ABC9C", "#E056C1", "#FF3F7A",
-    "#FFAA00", "#FF85C0",
+  // ─── Palette ───
+  const PETAL_COLORS = [
+    "rgba(200,140,130,0.45)", "rgba(220,160,150,0.35)",
+    "rgba(180,120,120,0.40)", "rgba(240,190,170,0.30)",
+    "rgba(160,110,130,0.35)", "rgba(210,170,140,0.28)",
   ];
-  const EMOJIS = ["🎂", "🎉", "🎊", "🥳", "🎈", "🎁", "💖", "✨", "🌟", "⭐", "🍰", "🎵"];
+  const SPARK_COLORS = [
+    "rgba(255,230,210,0.7)", "rgba(255,200,170,0.5)",
+    "rgba(220,180,160,0.6)", "rgba(255,215,180,0.4)",
+  ];
 
   // ─── DOM ───
-  const canvas = document.getElementById("fx");
-  const ctx = canvas.getContext("2d");
-  const celebrationEl = document.getElementById("celebration");
-  const nameTextEl = document.getElementById("name-text");
-  const happyTextEl = document.getElementById("happy-text");
-  const subtitleEl = document.getElementById("subtitle");
+  const canvas   = document.getElementById("fx");
+  const ctx      = canvas.getContext("2d");
+  const nameEl   = document.getElementById("name-text");
   const closeBtn = document.getElementById("close-btn");
-  const bgAurora = document.getElementById("bg-aurora");
-  const lightRays = document.getElementById("light-rays");
+  const closingOverlay = document.getElementById("closing-overlay");
+  const navPrev  = document.getElementById("nav-prev");
+  const navNext  = document.getElementById("nav-next");
+  const navDots  = document.getElementById("nav-dots");
 
-  // ─── VFX State ───
-  const stars = [];
-  const confetti = [];
-  const fireworks = [];
-  let isClosing = false;
+  const pages    = document.querySelectorAll(".page");
+  const totalPages = pages.length;
+
+  // ─── State ───
+  let currentPage = 0;
+  let isAnimating = false;
+  let isClosing   = false;
+
+  // VFX arrays
+  const stars  = [];
+  const petals = [];
+  const sparks = [];
 
   function resize() {
-    canvas.width = window.innerWidth;
+    canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
   }
 
-  // ─── Stars ───
+  // ═══════════════════════════════════════════
+  //  NAVIGATION
+  // ═══════════════════════════════════════════
+  function buildDots() {
+    navDots.innerHTML = "";
+    for (let i = 0; i < totalPages; i++) {
+      const dot = document.createElement("div");
+      dot.className = "nav-dot" + (i === 0 ? " active" : "");
+      dot.addEventListener("click", () => goToPage(i));
+      navDots.appendChild(dot);
+    }
+  }
+
+  function updateNav() {
+    navPrev.classList.toggle("hidden", currentPage === 0);
+    navNext.classList.toggle("hidden", currentPage === totalPages - 1);
+    navDots.querySelectorAll(".nav-dot").forEach((d, i) => {
+      d.classList.toggle("active", i === currentPage);
+    });
+  }
+
+  function goToPage(target) {
+    if (target === currentPage || isAnimating || target < 0 || target >= totalPages) return;
+    isAnimating = true;
+
+    const forward = target > currentPage;
+    const oldPage = pages[currentPage];
+    const newPage = pages[target];
+
+    // Position new page off-screen instantly (no transition)
+    newPage.style.transition = "none";
+    newPage.style.opacity = "0";
+    newPage.style.transform = forward ? "translateX(80px)" : "translateX(-80px)";
+    newPage.style.pointerEvents = "none";
+
+    // Force reflow so the "no transition" positioning takes effect
+    void newPage.offsetWidth;
+
+    // Now animate both pages with transitions
+    const trans = "opacity 0.65s ease, transform 0.65s cubic-bezier(0.4, 0, 0.2, 1)";
+
+    // New page slides in
+    newPage.style.transition = trans;
+    newPage.style.opacity = "1";
+    newPage.style.transform = "translateX(0)";
+    newPage.style.pointerEvents = "auto";
+
+    // Old page slides out in the opposite direction
+    oldPage.style.transition = trans;
+    oldPage.style.opacity = "0";
+    oldPage.style.transform = forward ? "translateX(-80px)" : "translateX(80px)";
+    oldPage.style.pointerEvents = "none";
+
+    currentPage = target;
+    updateNav();
+
+    setTimeout(() => { isAnimating = false; }, 680);
+  }
+
+  function nextPage() { goToPage(currentPage + 1); }
+  function prevPage() { goToPage(currentPage - 1); }
+
+  navNext.addEventListener("click", nextPage);
+  navPrev.addEventListener("click", prevPage);
+
+  // Keyboard
+  document.addEventListener("keydown", (e) => {
+    if (isClosing) return;
+    if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); nextPage(); }
+    if (e.key === "ArrowLeft")  { e.preventDefault(); prevPage(); }
+    if (e.key === "Escape") closeCelebration();
+  });
+
+  // Mouse wheel
+  let wheelCooldown = false;
+  document.addEventListener("wheel", (e) => {
+    if (isClosing || wheelCooldown) return;
+    wheelCooldown = true;
+    if (e.deltaY > 0 || e.deltaX > 0) nextPage();
+    else prevPage();
+    setTimeout(() => { wheelCooldown = false; }, 800);
+  }, { passive: true });
+
+  // ═══════════════════════════════════════════
+  //  VFX
+  // ═══════════════════════════════════════════
+
+  // Stars
   function initStars() {
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 120; i++) {
       stars.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        r: 0.4 + Math.random() * 2,
+        r: 0.3 + Math.random() * 1.3,
         phase: Math.random() * Math.PI * 2,
-        speed: 0.4 + Math.random() * 2,
+        speed: 0.3 + Math.random() * 1.2,
+        warmth: Math.random(),
       });
     }
   }
 
   function drawStars(now) {
     stars.forEach(s => {
-      const alpha = 0.15 + 0.7 * ((Math.sin(now * 0.001 * s.speed + s.phase) + 1) / 2);
+      const alpha = 0.08 + 0.45 * ((Math.sin(now * 0.0008 * s.speed + s.phase) + 1) / 2);
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = "#fff";
+      const r = 215 + Math.round(s.warmth * 40);
+      const g = 195 + Math.round(s.warmth * -25);
+      const b = 190 + Math.round(s.warmth * -25);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
@@ -54,259 +154,165 @@
     ctx.globalAlpha = 1;
   }
 
-  // ─── Confetti ───
-  function spawnConfetti(count = 4) {
-    for (let i = 0; i < count; i++) {
-      confetti.push({
-        x: Math.random() * canvas.width,
-        y: -15,
-        w: 4 + Math.random() * 8,
-        h: 6 + Math.random() * 12,
-        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-        vx: (Math.random() - 0.5) * 2.5,
-        vy: 1.5 + Math.random() * 3.5,
-        rot: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.15,
-        wobble: Math.random() * Math.PI * 2,
-        wobbleSpeed: 0.01 + Math.random() * 0.03,
-      });
-    }
+  // Petals
+  function spawnPetal() {
+    petals.push({
+      x: Math.random() * canvas.width, y: -20,
+      size: 3 + Math.random() * 5,
+      color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)],
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: 0.25 + Math.random() * 0.6,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.015,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.006 + Math.random() * 0.01,
+      opacity: 0.35 + Math.random() * 0.35,
+    });
   }
 
-  function updateAndDrawConfetti() {
-    for (let i = confetti.length - 1; i >= 0; i--) {
-      const p = confetti[i];
-      p.x += p.vx + Math.sin(p.wobble) * 0.8;
+  function updateAndDrawPetals() {
+    for (let i = petals.length - 1; i >= 0; i--) {
+      const p = petals[i];
+      p.x += p.vx + Math.sin(p.wobble) * 0.35;
       p.y += p.vy;
       p.rot += p.rotSpeed;
       p.wobble += p.wobbleSpeed;
-      if (p.y > canvas.height + 20) { confetti.splice(i, 1); continue; }
-
+      if (p.y > canvas.height + 30) { petals.splice(i, 1); continue; }
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rot);
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-      ctx.restore();
-    }
-  }
-
-  // ─── Fireworks ───
-  function burstFirework(x, y, big = false) {
-    const count = big ? 50 + Math.floor(Math.random() * 30) : 25 + Math.floor(Math.random() * 15);
-    const color = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
-    const color2 = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
-    for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
-      const speed = (big ? 3 : 2) + Math.random() * (big ? 6 : 4);
-      fireworks.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1,
-        decay: 0.006 + Math.random() * 0.016,
-        color: i % 3 === 0 ? color2 : color,
-        size: (big ? 2 : 1.5) + Math.random() * (big ? 3 : 2),
-        trail: big,
-      });
-    }
-  }
-
-  function updateAndDrawFireworks() {
-    for (let i = fireworks.length - 1; i >= 0; i--) {
-      const p = fireworks[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.025;
-      p.vx *= 0.988;
-      p.vy *= 0.988;
-      p.life -= p.decay;
-      if (p.life <= 0) { fireworks.splice(i, 1); continue; }
-
-      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.globalAlpha = p.opacity;
       ctx.fillStyle = p.color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, p.size * 0.55, p.size, 0, 0, Math.PI * 2);
       ctx.fill();
-
-      // Trail effect for big fireworks
-      if (p.trail && p.life > 0.3) {
-        ctx.globalAlpha = p.life * 0.3;
-        ctx.beginPath();
-        ctx.arc(p.x - p.vx * 2, p.y - p.vy * 2, p.size * p.life * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.restore();
     }
     ctx.globalAlpha = 1;
   }
 
-  // ─── Floating Emojis ───
-  let emojiSpawnAccum = 0;
-
-  function spawnFloatingEmoji() {
-    const emoji = document.createElement("div");
-    emoji.className = "floating-emoji";
-    emoji.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-    emoji.style.left = (5 + Math.random() * 90) + "vw";
-    emoji.style.bottom = "-40px";
-    emoji.style.fontSize = (24 + Math.random() * 28) + "px";
-    emoji.style.animationDuration = (4 + Math.random() * 5) + "s";
-    emoji.style.animationDelay = "0s";
-    document.body.appendChild(emoji);
-    emoji.addEventListener("animationend", () => emoji.remove());
+  // Golden sparks
+  function spawnSpark() {
+    sparks.push({
+      x: canvas.width * (0.15 + Math.random() * 0.7),
+      y: canvas.height * (0.5 + Math.random() * 0.4),
+      size: 1 + Math.random() * 2.5,
+      color: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)],
+      vy: -(0.15 + Math.random() * 0.4),
+      vx: (Math.random() - 0.5) * 0.2,
+      life: 1,
+      decay: 0.003 + Math.random() * 0.005,
+    });
   }
 
-  // ─── Sparkles around text ───
-  function spawnSparkles(container, count = 20) {
-    const rect = container.getBoundingClientRect();
-    for (let i = 0; i < count; i++) {
-      const sparkle = document.createElement("div");
-      sparkle.className = "sparkle";
-      sparkle.style.left = (Math.random() * rect.width - 5) + "px";
-      sparkle.style.top = (Math.random() * rect.height - 5) + "px";
-      sparkle.style.animationDelay = (Math.random() * 2) + "s";
-      sparkle.style.animationDuration = (0.8 + Math.random() * 1.2) + "s";
-      const colors = ["#FFD700", "#FF6B9D", "#fff", "#E056C1"];
-      sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
-      sparkle.style.boxShadow = `0 0 8px 2px ${sparkle.style.background}`;
-      container.appendChild(sparkle);
+  function updateAndDrawSparks() {
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const g = sparks[i];
+      g.x += g.vx; g.y += g.vy; g.life -= g.decay;
+      if (g.life <= 0) { sparks.splice(i, 1); continue; }
+      ctx.globalAlpha = g.life * 0.5;
+      ctx.fillStyle = g.color;
+      ctx.shadowColor = g.color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, g.size * g.life, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
     }
+    ctx.globalAlpha = 1;
   }
 
-  // ─── VFX Loop ───
+  // VFX loop
   let frameCount = 0;
-  let lastFireworkAt = 0;
-
   function vfxLoop(now) {
     if (isClosing) return;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars(now);
-
-    // Confetti — spawn every 2 frames
     frameCount++;
-    if (frameCount % 2 === 0) spawnConfetti(3);
-    updateAndDrawConfetti();
-
-    // Periodic fireworks — one every 1.5-3s
-    if (now - lastFireworkAt > 1500 + Math.random() * 1500) {
-      lastFireworkAt = now;
-      burstFirework(
-        canvas.width * (0.1 + Math.random() * 0.8),
-        canvas.height * (0.08 + Math.random() * 0.4),
-        Math.random() > 0.5
-      );
-    }
-    updateAndDrawFireworks();
-
-    // Floating emojis
-    emojiSpawnAccum++;
-    if (emojiSpawnAccum % 40 === 0) spawnFloatingEmoji();
-
+    if (frameCount % 10 === 0) spawnPetal();
+    updateAndDrawPetals();
+    if (frameCount % 14 === 0) spawnSpark();
+    updateAndDrawSparks();
     requestAnimationFrame(vfxLoop);
   }
 
-  // ─── Build the name letter by letter ───
+  // ═══════════════════════════════════════════
+  //  NAME RENDERER
+  // ═══════════════════════════════════════════
   function renderName(name) {
-    nameTextEl.innerHTML = "";
-    const letters = name.split("");
-
-    letters.forEach((char, i) => {
+    nameEl.innerHTML = "";
+    name.split("").forEach((char, i) => {
       const span = document.createElement("span");
       span.className = "name-letter";
       span.textContent = char === " " ? "\u00A0" : char;
-      span.style.setProperty("--d", `${0.9 + i * 0.07}s`);
-      span.style.setProperty("--i", i);
-      nameTextEl.appendChild(span);
+      span.style.animationDelay = `${1.1 + i * 0.09}s`;
+      nameEl.appendChild(span);
     });
-
-    // Exclamation marks with extra energy
-    const exclaimContainer = document.createElement("span");
-    exclaimContainer.className = "exclaim-container";
-    for (let i = 0; i < 3; i++) {
-      const ex = document.createElement("span");
-      ex.className = "exclaim";
-      ex.textContent = "!";
-      ex.style.animationDelay = `${1.2 + letters.length * 0.07 + i * 0.12}s, ${i * 0.2}s`;
-      exclaimContainer.appendChild(ex);
-    }
-    nameTextEl.appendChild(exclaimContainer);
   }
 
-  // ─── Close with smooth transition ───
+  // ═══════════════════════════════════════════
+  //  CLOSE
+  // ═══════════════════════════════════════════
   function closeCelebration() {
     if (isClosing) return;
     isClosing = true;
 
-    celebrationEl.classList.add("closing");
-    bgAurora.classList.add("closing");
-    lightRays.classList.add("closing");
-    canvas.classList.add("closing");
+    // Fade to black, then close
+    closingOverlay.classList.add("active");
 
-    // Wait for animation to finish, then close window
     setTimeout(() => {
       if (window.electronAPI?.closeBirthday) {
         window.electronAPI.closeBirthday();
       } else {
         window.close();
       }
-    }, 650);
+    }, 750);
   }
 
   closeBtn.addEventListener("click", closeCelebration);
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeCelebration();
-  });
 
-  // ─── Init ───
+  // ═══════════════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════════════
   async function init() {
     resize();
     window.addEventListener("resize", resize);
     initStars();
+    buildDots();
+    updateNav();
 
-    // Fetch birthday data
+    // Fetch data
     let data = { name: "", message: "" };
     try {
       if (window.electronAPI?.getBirthdayData) {
         data = await window.electronAPI.getBirthdayData();
       }
-    } catch (e) {
-      console.warn("Could not fetch birthday data:", e);
-    }
+    } catch (e) { console.warn("Birthday data error:", e); }
 
-    const name = (data.name || "").trim() || "You";
-
-    // Render name
+    const name = (data.name || "").trim() || "Raccoon";
     renderName(name);
 
-    // Activate animations
-    celebrationEl.classList.add("active");
-    lightRays.classList.add("active");
-    document.body.classList.add("screen-shake");
-
-    // Add sparkles after letters animate in
-    setTimeout(() => {
-      spawnSparkles(nameTextEl.closest(".name-container"), 25);
-    }, 1500);
-
-    // Initial firework barrage
-    setTimeout(() => {
-      burstFirework(canvas.width * 0.3, canvas.height * 0.3, true);
-      burstFirework(canvas.width * 0.7, canvas.height * 0.25, true);
-    }, 400);
-
-    setTimeout(() => {
-      burstFirework(canvas.width * 0.5, canvas.height * 0.2, true);
-      burstFirework(canvas.width * 0.2, canvas.height * 0.4, true);
-      burstFirework(canvas.width * 0.8, canvas.height * 0.35, true);
-    }, 900);
-
-    // Spawn a burst of emojis on entrance
-    for (let i = 0; i < 8; i++) {
-      setTimeout(() => spawnFloatingEmoji(), 300 + i * 200);
+    // Seed petals
+    for (let i = 0; i < 12; i++) {
+      petals.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height * 0.8,
+        size: 3 + Math.random() * 5,
+        color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)],
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: 0.2 + Math.random() * 0.5,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.015,
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: 0.006 + Math.random() * 0.01,
+        opacity: 0.25 + Math.random() * 0.3,
+      });
     }
 
-    // Start VFX loop
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => spawnSpark(), i * 250);
+    }
+
     requestAnimationFrame(vfxLoop);
   }
 

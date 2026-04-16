@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Birthday!</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <title>Happy Birthday</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,377 +12,341 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Outfit', system-ui, sans-serif;
       color: #fff;
       cursor: default;
-      background: #030108;
+      background: #050208;
     }
 
-    /* ─── Animated gradient background ─── */
+    /* ─── Aurora ─── */
     .bg-aurora {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
+      position: fixed; inset: 0; z-index: 0;
       background:
-        radial-gradient(ellipse 80% 60% at 50% 50%, rgba(180, 30, 120, 0.35) 0%, transparent 70%),
-        radial-gradient(ellipse 60% 80% at 25% 60%, rgba(80, 20, 180, 0.3) 0%, transparent 65%),
-        radial-gradient(ellipse 50% 50% at 75% 35%, rgba(255, 50, 100, 0.25) 0%, transparent 60%),
-        radial-gradient(ellipse 90% 40% at 50% 80%, rgba(255, 180, 0, 0.15) 0%, transparent 50%);
-      animation: auroraPulse 6s ease-in-out infinite alternate;
+        radial-gradient(ellipse 70% 50% at 50% 48%, rgba(140, 40, 80, 0.32) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 70% at 28% 55%, rgba(80, 30, 100, 0.22) 0%, transparent 60%),
+        radial-gradient(ellipse 45% 45% at 72% 40%, rgba(160, 60, 90, 0.20) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 30% at 50% 90%, rgba(140, 90, 50, 0.14) 0%, transparent 50%);
+      animation: auroraBreathe 8s ease-in-out infinite alternate;
+    }
+    @keyframes auroraBreathe {
+      0%   { opacity: 0.5; transform: scale(1); }
+      100% { opacity: 0.9; transform: scale(1.06); }
     }
 
-    @keyframes auroraPulse {
-      0%   { opacity: 0.6; transform: scale(1); }
-      100% { opacity: 1;   transform: scale(1.08); }
-    }
-
-    /* ─── Light rays behind text ─── */
-    .light-rays {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 200vmax;
-      height: 200vmax;
-      transform: translate(-50%, -50%);
-      z-index: 1;
-      background: conic-gradient(
-        from 0deg,
-        transparent 0deg, rgba(255, 107, 157, 0.06) 8deg, transparent 16deg,
-        transparent 24deg, rgba(255, 215, 0, 0.05) 32deg, transparent 40deg,
-        transparent 48deg, rgba(155, 89, 182, 0.06) 56deg, transparent 64deg,
-        transparent 72deg, rgba(255, 107, 157, 0.05) 80deg, transparent 88deg,
-        transparent 96deg, rgba(255, 215, 0, 0.06) 104deg, transparent 112deg,
-        transparent 120deg, rgba(155, 89, 182, 0.05) 128deg, transparent 136deg,
-        transparent 144deg, rgba(255, 107, 157, 0.06) 152deg, transparent 160deg,
-        transparent 168deg, rgba(255, 215, 0, 0.05) 176deg, transparent 184deg,
-        transparent 192deg, rgba(155, 89, 182, 0.06) 200deg, transparent 208deg,
-        transparent 216deg, rgba(255, 107, 157, 0.05) 224deg, transparent 232deg,
-        transparent 240deg, rgba(255, 215, 0, 0.06) 248deg, transparent 256deg,
-        transparent 264deg, rgba(155, 89, 182, 0.05) 272deg, transparent 280deg,
-        transparent 288deg, rgba(255, 107, 157, 0.06) 296deg, transparent 304deg,
-        transparent 312deg, rgba(255, 215, 0, 0.05) 320deg, transparent 328deg,
-        transparent 336deg, rgba(155, 89, 182, 0.06) 344deg, transparent 360deg
-      );
-      animation: raysRotate 20s linear infinite;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .light-rays.active {
-      animation: raysRotate 20s linear infinite, raysIn 2s 0.6s ease forwards;
-    }
-
-    @keyframes raysRotate {
-      to { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-    @keyframes raysIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-
-    /* ─── Canvas VFX ─── */
-    .fx-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 8;
-    }
-
-    /* ─── Close button ─── */
-    #close-btn {
-      position: fixed;
-      top: 22px;
-      right: 30px;
-      z-index: 100;
-      width: 48px;
-      height: 48px;
-      border: 2px solid rgba(255,255,255,0.08);
+    /* ─── Bloom ─── */
+    .bloom {
+      position: fixed; top: 50%; left: 50%;
+      width: 55vw; height: 55vw;
+      max-width: 650px; max-height: 650px;
+      transform: translate(-50%, -55%);
       border-radius: 50%;
-      background: rgba(255,255,255,0.03);
-      color: rgba(255,255,255,0.35);
-      font-size: 24px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(12px);
+      background: radial-gradient(circle, rgba(200, 100, 130, 0.12) 0%, transparent 65%);
+      z-index: 1; pointer-events: none;
+      animation: bloomPulse 5s ease-in-out infinite alternate;
+    }
+    @keyframes bloomPulse {
+      0%   { transform: translate(-50%, -55%) scale(0.85); opacity: 0.4; }
+      100% { transform: translate(-50%, -55%) scale(1.2); opacity: 0.9; }
+    }
+
+    /* ─── Canvas ─── */
+    .fx-canvas {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 2;
+    }
+
+    /* ─── Close ─── */
+    #close-btn {
+      position: fixed; top: 24px; right: 32px; z-index: 100;
+      width: 42px; height: 42px;
+      border: 1.5px solid rgba(255,255,255,0.06);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.02);
+      color: rgba(255,255,255,0.25);
+      font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.4s ease;
+      backdrop-filter: blur(8px);
     }
     #close-btn:hover {
-      background: rgba(255,107,157,0.15);
-      border-color: rgba(255,107,157,0.35);
-      color: #FF6B9D;
-      transform: scale(1.15) rotate(90deg);
+      background: rgba(200,120,160,0.12);
+      border-color: rgba(200,120,160,0.3);
+      color: rgba(255,255,255,0.7);
+      transform: scale(1.1);
     }
 
-    /* ─── Main celebration content ─── */
-    .celebration {
-      position: fixed;
-      inset: 0;
-      z-index: 5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
+    /* ─── Pages ─── */
+    .pages-viewport {
+      position: fixed; inset: 0; z-index: 5;
+      overflow: hidden;
+    }
+
+    .page {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 28px;
       opacity: 0;
+      transform: translateX(60px);
+      pointer-events: none;
     }
 
-    .celebration.active {
-      animation: celebrationIn 0.4s 0.1s ease forwards;
+    .page.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
     }
 
-    @keyframes celebrationIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-
-    /* ─── HAPPY BIRTHDAY text ─── */
+    /* ─── Page 0 — Hero ─── */
     .happy-text {
-      font-size: clamp(2.8rem, 6.5vw, 5.5rem);
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      text-align: center;
-      line-height: 1;
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      font-weight: 400; font-style: italic;
+      letter-spacing: 0.25em; text-transform: uppercase;
       color: transparent;
-      background: linear-gradient(
-        135deg,
-        #FF6B9D 0%, #FF3F7A 15%, #FFD700 30%, #FFAA00 45%,
-        #E056C1 55%, #9B59B6 70%, #FF6B9D 85%, #FFD700 100%
-      );
-      background-size: 400% 400%;
+      background: linear-gradient(90deg, rgba(180,140,120,0.3), rgba(255,200,160,0.7), rgba(180,140,120,0.3));
+      background-size: 200% 100%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation:
-        gradientFlow 3s ease infinite,
-        textDropIn 0.7s 0.3s cubic-bezier(0.22, 1.5, 0.36, 1) both;
-      filter: drop-shadow(0 0 60px rgba(255, 107, 157, 0.5))
-              drop-shadow(0 0 120px rgba(255, 215, 0, 0.25));
-      position: relative;
+      opacity: 0;
+      animation: labelIn 1.4s 0.6s ease both, shimmerText 6s 2s linear infinite;
     }
-
-    /* ─── NAME — the HUGE exciting part ─── */
-    .name-container {
-      margin-top: 8px;
-      overflow: visible;
-      position: relative;
+    @keyframes labelIn {
+      from { opacity: 0; letter-spacing: 0.6em; }
+      to   { opacity: 1; letter-spacing: 0.25em; }
+    }
+    @keyframes shimmerText {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
     }
 
     .name-text {
-      font-size: clamp(4rem, 12vw, 10rem);
-      font-weight: 900;
-      text-align: center;
-      line-height: 1.05;
-      letter-spacing: -0.02em;
-      position: relative;
-      display: inline-block;
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      font-size: clamp(5rem, 15vw, 12rem);
+      font-weight: 700; text-align: center;
+      line-height: 1; margin-top: 4px;
     }
 
     .name-letter {
       display: inline-block;
       color: transparent;
-      background: linear-gradient(
-        180deg,
-        #FFD700 0%, #FFAA00 30%, #FF6B9D 60%, #E056C1 100%
-      );
-      background-size: 100% 300%;
+      background: linear-gradient(170deg,
+        rgba(255,235,215,1) 0%, rgba(255,210,180,0.95) 30%,
+        rgba(235,170,150,0.92) 60%, rgba(200,140,140,0.88) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation:
-        letterDrop 0.5s cubic-bezier(0.22, 1.6, 0.36, 1) both,
-        letterColorShift 4s ease-in-out infinite alternate,
-        letterBounce 2s ease-in-out infinite;
-      filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6))
-              drop-shadow(0 4px 20px rgba(255, 80, 120, 0.4));
-      text-shadow: none;
-      position: relative;
-    }
-
-    .name-letter:nth-child(odd) {
-      animation-delay: var(--d), 0s, calc(var(--i) * 0.15s);
-    }
-    .name-letter:nth-child(even) {
-      animation-delay: var(--d), 2s, calc(var(--i) * 0.15s + 0.08s);
-    }
-
-    @keyframes letterDrop {
-      0%   { opacity: 0; transform: translateY(-80px) scale(0.3) rotate(-15deg); }
-      60%  { transform: translateY(8px) scale(1.12) rotate(3deg); }
-      80%  { transform: translateY(-4px) scale(0.98) rotate(-1deg); }
-      100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
-    }
-
-    @keyframes letterColorShift {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 0% 100%; }
-    }
-
-    @keyframes letterBounce {
-      0%, 100% { transform: translateY(0); }
-      50%      { transform: translateY(-6px); }
-    }
-
-    /* ─── Exclamation marks ─── */
-    .exclaim-container {
-      display: inline-block;
-      position: relative;
-    }
-
-    .exclaim {
-      display: inline-block;
-      font-size: clamp(3.5rem, 10vw, 8rem);
-      font-weight: 900;
-      color: #FFD700;
-      filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
-      animation:
-        exclaimPop 0.4s cubic-bezier(0.22, 1.8, 0.36, 1) both,
-        exclaimShake 0.6s ease-in-out infinite alternate;
-    }
-
-    @keyframes exclaimPop {
-      0%   { opacity: 0; transform: scale(0) rotate(-30deg); }
-      70%  { transform: scale(1.3) rotate(8deg); }
-      100% { opacity: 1; transform: scale(1) rotate(0); }
-    }
-
-    @keyframes exclaimShake {
-      0%   { transform: rotate(-3deg) translateY(0); }
-      100% { transform: rotate(3deg) translateY(-5px); }
-    }
-
-    /* ─── Sparkle elements ─── */
-    .sparkle {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: #FFD700;
-      border-radius: 50%;
-      pointer-events: none;
-      animation: sparklePulse 1.2s ease-in-out infinite;
-      box-shadow: 0 0 8px 2px rgba(255, 215, 0, 0.6);
-    }
-
-    @keyframes sparklePulse {
-      0%, 100% { opacity: 0; transform: scale(0); }
-      50%      { opacity: 1; transform: scale(1.5); }
-    }
-
-    /* ─── Floating emojis ─── */
-    .floating-emoji {
-      position: fixed;
-      font-size: 32px;
-      pointer-events: none;
-      z-index: 6;
-      animation: emojiFloat linear forwards;
       opacity: 0;
+      animation: letterReveal 0.9s cubic-bezier(0.25,1,0.5,1) forwards;
+      filter: drop-shadow(0 0 50px rgba(220,150,120,0.3));
+    }
+    @keyframes letterReveal {
+      0%   { opacity: 0; transform: translateY(40px) scale(0.8); filter: blur(12px); }
+      60%  { opacity: 0.9; transform: translateY(-5px) scale(1.03); filter: blur(0); }
+      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
 
-    @keyframes emojiFloat {
-      0%   { opacity: 0; transform: translateY(0) rotate(0deg) scale(0.5); }
-      10%  { opacity: 1; transform: translateY(-10vh) rotate(15deg) scale(1); }
-      90%  { opacity: 0.8; transform: translateY(-85vh) rotate(-20deg) scale(1.1); }
-      100% { opacity: 0; transform: translateY(-100vh) rotate(30deg) scale(0.8); }
+    /* ─── Story pages ─── */
+    .story-tag {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.3em;
+      color: rgba(220, 170, 140, 0.35);
+      margin-bottom: 20px;
     }
 
-    /* ─── Screen shake on entrance ─── */
-    .screen-shake {
-      animation: shakeIt 0.5s 0.2s ease-out;
+    .story-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3.8rem);
+      font-weight: 600; font-style: italic;
+      color: transparent;
+      background: linear-gradient(170deg,
+        rgba(255,230,210,0.95) 0%, rgba(230,180,160,0.8) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center; line-height: 1.2;
+      margin-bottom: 28px;
+      filter: drop-shadow(0 0 35px rgba(200,130,110,0.2));
     }
 
-    @keyframes shakeIt {
-      0%   { transform: translate(0, 0); }
-      15%  { transform: translate(-4px, 2px); }
-      30%  { transform: translate(4px, -3px); }
-      45%  { transform: translate(-3px, 3px); }
-      60%  { transform: translate(3px, -2px); }
-      75%  { transform: translate(-2px, 1px); }
-      100% { transform: translate(0, 0); }
+    .story-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      font-weight: 400; font-style: italic;
+      color: rgba(220, 195, 185, 0.6);
+      text-align: center;
+      max-width: 540px; line-height: 1.85;
     }
 
-    /* ─── Closing transition ─── */
-    .celebration.closing {
-      animation: closeOut 0.6s ease-in forwards;
+    .story-ornament {
+      display: flex; align-items: center; gap: 12px; margin-top: 32px;
+    }
+    .story-ornament .line {
+      width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200,150,130,0.3), transparent);
+    }
+    .story-ornament .dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(220,170,140,0.35);
+      box-shadow: 0 0 8px rgba(220,170,140,0.25);
     }
 
-    .bg-aurora.closing,
-    .light-rays.closing,
-    .fx-canvas.closing {
-      animation: fadeOutQuick 0.5s ease-in forwards;
+    /* ─── Page accent gradients ─── */
+    .page[data-page="1"] .story-title { background: linear-gradient(170deg, rgba(255,220,200,0.9) 0%, rgba(220,160,140,0.7) 100%); -webkit-background-clip: text; }
+    .page[data-page="2"] .story-title { background: linear-gradient(170deg, rgba(240,210,230,0.9) 0%, rgba(200,150,180,0.7) 100%); -webkit-background-clip: text; }
+    .page[data-page="3"] .story-title { background: linear-gradient(170deg, rgba(220,210,240,0.9) 0%, rgba(180,160,210,0.7) 100%); -webkit-background-clip: text; }
+    .page[data-page="4"] .story-title { background: linear-gradient(170deg, rgba(255,200,200,0.9) 0%, rgba(220,140,140,0.7) 100%); -webkit-background-clip: text; }
+    .page[data-page="5"] .story-title { background: linear-gradient(170deg, rgba(255,230,190,0.9) 0%, rgba(220,180,130,0.7) 100%); -webkit-background-clip: text; }
+    .page[data-page="6"] .story-title { background: linear-gradient(170deg, rgba(210,200,220,0.9) 0%, rgba(170,160,190,0.7) 100%); -webkit-background-clip: text; }
+    .page[data-page="7"] .story-title { background: linear-gradient(170deg, rgba(255,215,200,0.95) 0%, rgba(240,170,150,0.85) 100%); -webkit-background-clip: text; font-size: clamp(3rem, 7vw, 5.5rem); }
+
+    /* ─── Navigation ─── */
+    .nav-arrows {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: center;
+      gap: 32px; padding: 28px 0 32px;
+      pointer-events: none;
     }
 
-    @keyframes closeOut {
-      0%   { opacity: 1; transform: scale(1); }
-      100% { opacity: 0; transform: scale(1.15); filter: blur(20px); }
+    .nav-arrow {
+      width: 44px; height: 44px;
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.02);
+      color: rgba(255,255,255,0.3);
+      font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease;
+      pointer-events: auto;
+      backdrop-filter: blur(6px);
+    }
+    .nav-arrow:hover {
+      background: rgba(200,150,130,0.1);
+      border-color: rgba(200,150,130,0.25);
+      color: rgba(255,220,200,0.7);
+      transform: scale(1.08);
+    }
+    .nav-arrow.hidden { opacity: 0; pointer-events: none; }
+
+    .nav-dots { display: flex; gap: 10px; align-items: center; }
+
+    .nav-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      transition: all 0.4s ease;
+      cursor: pointer; pointer-events: auto;
+    }
+    .nav-dot.active {
+      width: 20px; border-radius: 10px;
+      background: rgba(220,170,140,0.5);
+      box-shadow: 0 0 12px rgba(220,170,140,0.3);
     }
 
-    @keyframes fadeOutQuick {
-      to { opacity: 0; }
-    }
-
-    @keyframes gradientFlow {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* ─── Subtitle ─── */
-    .subtitle {
-      font-size: clamp(0.9rem, 2vw, 1.2rem);
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.3);
-      margin-top: 20px;
+    .swipe-hint {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%); z-index: 15;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem; font-weight: 500;
       letter-spacing: 0.15em;
-      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
       opacity: 0;
-      animation: fadeInUp 0.6s 2.2s ease forwards;
+      animation: hintIn 1s 3.5s ease forwards, hintOut 1s 7s ease forwards;
     }
+    @keyframes hintIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes hintOut { from { opacity: 1; } to { opacity: 0; } }
 
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ─── Glow ring pulse behind the name ─── */
-    .glow-ring {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 60vw;
-      height: 60vw;
-      max-width: 700px;
-      max-height: 700px;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(255, 107, 157, 0.12) 0%, transparent 70%);
-      z-index: -1;
+    /* ─── Closing ─── */
+    .closing-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: #050208; opacity: 0;
       pointer-events: none;
-      animation: glowPulse 3s ease-in-out infinite alternate;
+      transition: opacity 0.7s ease;
     }
-
-    @keyframes glowPulse {
-      0%   { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
-      100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
-    }
+    .closing-overlay.active { opacity: 1; pointer-events: auto; }
   </style>
 </head>
 <body>
   <div class="bg-aurora" id="bg-aurora"></div>
-  <div class="light-rays" id="light-rays"></div>
+  <div class="bloom" id="bloom"></div>
   <canvas id="fx" class="fx-canvas"></canvas>
 
   <button id="close-btn" title="Close">×</button>
 
-  <div class="celebration" id="celebration">
-    <div class="glow-ring"></div>
-    <div class="happy-text" id="happy-text">HAPPY BIRTHDAY</div>
-    <div class="name-container" id="name-container">
+  <div class="pages-viewport" id="pages-viewport">
+    <!-- Page 0: Hero -->
+    <div class="page active" data-page="0" id="page-0">
+      <div class="happy-text">Happy Birthday</div>
       <div class="name-text" id="name-text"></div>
     </div>
-    <p class="subtitle" id="subtitle">from the strongest sorcerer ✦</p>
+
+    <!-- Page 1: August 20th -->
+    <div class="page" data-page="1" id="page-1">
+      <span class="story-tag">August 20th</span>
+      <h2 class="story-title">The Day We<br>Crossed Paths</h2>
+      <p class="story-body">August 20th. Crazy how one random day just decides to rearrange your whole life. We crossed paths and honestly? I didn't think much of it. Had no clue that was the beginning of everything.</p>
+      <div class="story-ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+    </div>
+
+    <!-- Page 2: The shy weeks -->
+    <div class="page" data-page="2" id="page-2">
+      <span class="story-tag">The Beginning</span>
+      <h2 class="story-title">Too Shy to<br>Even Say Hi</h2>
+      <p class="story-body">Weeks. I spent actual weeks trying to talk to you and just... couldn't. Me. The guy who never shuts up. Around you I forgot how words work. That's embarrassing to admit but it's true lol.</p>
+      <div class="story-ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+    </div>
+
+    <!-- Page 3: The calls -->
+    <div class="page" data-page="3" id="page-3">
+      <span class="story-tag">Late Nights</span>
+      <h2 class="story-title">The Calls<br>and the Chaos</h2>
+      <p class="story-body">Our calls were like an hour, two max. But they hit different. You'd be talking, your roommates would start fighting in the background and I'd just sit there enjoying the whole chaos. Those calls were never long enough but somehow they were always exactly what I needed.</p>
+      <div class="story-ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+    </div>
+
+    <!-- Page 4: The chaos -->
+    <div class="page" data-page="4" id="page-4">
+      <span class="story-tag">The Chaos</span>
+      <h2 class="story-title">Fights, Jealousy<br>&amp; All That</h2>
+      <p class="story-body">We fought so much lol. And yeah I got jealous. Like even the thought of you talking to some other guy would just... I'd lose it. It was dumb and messy and dramatic. But I wouldn't take any of it back. Not one bit.</p>
+      <div class="story-ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+    </div>
+
+    <!-- Page 5: The good times -->
+    <div class="page" data-page="5" id="page-5">
+      <span class="story-tag">The Good Days</span>
+      <h2 class="story-title">The Days I<br>Keep Replaying</h2>
+      <p class="story-body">Our 5pm snack runs during lecture, sneaking out while everyone pretended to focus. The hangouts where we'd just talk about nothing for hours. I keep replaying those days in my head. The way you'd laugh, the little things you'd say. I didn't know I was making memories. I just knew I wanted to be around you.</p>
+      <div class="story-ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+    </div>
+
+    <!-- Page 6: The hard part -->
+    <div class="page" data-page="6" id="page-6">
+      <span class="story-tag">Recently</span>
+      <h2 class="story-title">What I Had<br>to Do</h2>
+      <p class="story-body">I told you to not talk to me. To leave. And you did. I'm doing good for now. It is what it is. Hope you're doing good too.</p>
+      <div class="story-ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+    </div>
+
+    <!-- Page 7: I miss you -->
+    <div class="page" data-page="7" id="page-7">
+      <span class="story-tag">Always</span>
+      <h2 class="story-title">I Miss You</h2>
+      <p class="story-body">I don't say it enough. Or maybe I say it too much. But I miss you. The calls, the fights, the 5pm chaos, all of it. You'll always have a best friend out here, thinking of you. Happy Birthday.</p>
+      <div class="story-ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+      <p class="story-body" style="margin-top: 28px; color: rgba(220,180,150,0.5); font-size: clamp(1rem, 2vw, 1.2rem);">Your forever owl 🦉 ✦</p>
+    </div>
   </div>
+
+  <!-- Navigation -->
+  <div class="nav-arrows" id="nav-arrows">
+    <button class="nav-arrow hidden" id="nav-prev" title="Previous">‹</button>
+    <div class="nav-dots" id="nav-dots"></div>
+    <button class="nav-arrow" id="nav-next" title="Next">›</button>
+  </div>
+
+  <div class="swipe-hint" id="swipe-hint">swipe or press → to continue</div>
+
+  <div class="closing-overlay" id="closing-overlay"></div>
 
   <script src="./birthday.js"></script>
 </body>

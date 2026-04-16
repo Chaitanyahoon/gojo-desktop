@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gojo Menu</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, sans-serif;
+      user-select: none;
+      -webkit-app-region: no-drag;
+    }
+
+    .menu {
+      position: absolute;
+      top: 6px; left: 6px; right: 6px; bottom: 6px;
+      background: rgba(10, 12, 24, 0.95);
+      border: 1px solid rgba(94, 168, 255, 0.18);
+      border-radius: 14px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 8px 32px rgba(0,0,0,0.5),
+        0 0 24px rgba(78, 168, 255, 0.06);
+      backdrop-filter: blur(24px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: menuIn 0.14s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes menuIn {
+      from { opacity: 0; transform: scale(0.93) translateY(-5px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      padding: 9px 12px 7px;
+      display: flex;
+      gap: 5px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 7px;
+      padding: 4px 7px;
+    }
+    .stat-pill .s-icon { font-size: 10px; }
+    .stat-pill .s-label {
+      font-size: 9px; font-weight: 600;
+      color: rgba(200,210,230,0.5);
+      text-transform: uppercase; letter-spacing: 0.4px;
+      flex-shrink: 0;
+    }
+    .stat-bar-track {
+      flex: 1; height: 3px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 999px; overflow: hidden;
+    }
+    .stat-bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+    .stat-bar-fill.mood   { background: linear-gradient(90deg,#ff6b8a,#ff8fb3); }
+    .stat-bar-fill.energy { background: linear-gradient(90deg,#4ea8ff,#80c6ff); }
+    .stat-bar-fill.hunger { background: linear-gradient(90deg,#ff9f43,#ffd89b); }
+    .stat-val { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.35); min-width: 20px; text-align: right; }
+
+    /* Items */
+    .items { flex: 1; overflow-y: auto; padding: 3px 0; }
+    .items::-webkit-scrollbar { display: none; }
+
+    .sep {
+      height: 1px;
+      background: rgba(255,255,255,0.05);
+      margin: 3px 10px;
+    }
+
+    /* Base item */
+    .item {
+      display: flex; align-items: center;
+      padding: 6px 12px;
+      cursor: pointer; gap: 9px;
+      transition: background 0.1s;
+    }
+    .item:hover { background: rgba(94,168,255,0.09); }
+    .item:active { background: rgba(94,168,255,0.16); }
+
+    .item-icon { font-size: 13px; width: 18px; text-align: center; flex-shrink: 0; }
+    .item-label { flex: 1; font-size: 12.5px; font-weight: 450; color: rgba(220,230,245,0.88); }
+    .item-label.danger { color: rgba(255,90,90,0.8); }
+    .item-arrow {
+      font-size: 10px; color: rgba(255,255,255,0.2);
+      transition: transform 0.2s;
+    }
+    .item-arrow.open { transform: rotate(90deg); color: rgba(94,168,255,0.6); }
+
+    /* Inline sub-items */
+    .sub-items {
+      display: none;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .sub-items.open { display: block; }
+
+    .sub-item {
+      display: flex; align-items: center;
+      padding: 5px 12px 5px 38px; gap: 8px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .sub-item:hover { background: rgba(94,168,255,0.08); }
+    .sub-item:active { background: rgba(94,168,255,0.14); }
+    .sub-item-icon { font-size: 12px; width: 16px; text-align: center; flex-shrink: 0; }
+    .sub-item-label { font-size: 12px; font-weight: 400; color: rgba(200,215,240,0.75); }
+
+    /* Toggle */
+    .toggle {
+      width: 28px; height: 15px; border-radius: 999px;
+      position: relative; flex-shrink: 0; transition: background 0.2s; cursor: pointer;
+    }
+    .toggle.on  { background: linear-gradient(135deg,#4ea8ff,#8d56ff); }
+    .toggle.off { background: rgba(255,255,255,0.1); }
+    .toggle-knob {
+      position: absolute; top: 2px;
+      width: 11px; height: 11px; border-radius: 50%; background: white;
+      transition: left 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    .toggle.on  .toggle-knob { left: 15px; }
+    .toggle.off .toggle-knob { left: 2px; }
+  </style>
+</head>
+<body>
+  <div class="menu" id="menu">
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="items" id="items"></div>
+  </div>
+  <script src="./contextmenu.js"></script>
+</body>
+</html>

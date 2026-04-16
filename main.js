@@ -8,6 +8,8 @@ const {
   Menu,
   nativeImage,
   session,
+  globalShortcut,
+  clipboard,
 } = require("electron");
 const Store = require("electron-store").default;
 const AutoLaunch = require("auto-launch");
@@ -57,9 +59,12 @@ let settingsWindow = null;
 let chatWindow = null;
 let hudWindow = null;
 let birthdayWindow = null;
+let contextMenuWindow = null;
 let tray = null;
 let isQuitting = false;
 let bubbleHideTimer = null;
+let clipboardPollTimer = null;
+let lastClipboardText = "";
 const LOG_FILE = path.join(__dirname, "gojo-pet.log");
 
 app.commandLine.appendSwitch("disable-renderer-backgrounding");
@@ -206,6 +211,62 @@ function toggleVisibility(forceShow) {
   }
 }
 
+function summonPet() {
+  if (!petWindow) return;
+  const area = getWorkArea();
+  const cx = Math.round(area.x + area.width / 2 - WINDOW_SIZE.width / 2);
+  const cy = Math.round(area.y + area.height - WINDOW_SIZE.height);
+  petWindow.setPosition(cx, cy, false);
+  petWindow.showInactive();
+  petWindow.setAlwaysOnTop(true, "screen-saver");
+  // Tell the pet renderer to say something after a short settle delay
+  setTimeout(() => sendToWindow(petWindow, "menu:action", "hello"), 300);
+}
+
+function updateTrayTooltip() {
+  if (!tray) return;
+  const s = getStats();
+  const tip = `Gojo Satoru Pet\nMood: ${getMoodText(s.mood)} (${Math.round(s.mood)}) | Energy: ${getEnergyText(s.energy)} (${Math.round(s.energy)}) | Hunger: ${getHungerText(s.hunger)} (${Math.round(s.hunger)})`;
+  tray.setToolTip && tray.setToolTip(tip);
+}
+
+function getSeasonalGreet() {
+  const now = new Date();
+  const m = now.getMonth() + 1;
+  const d = now.getDate();
+  if (m === 10 && d >= 25) return "Happy Halloween. I'm already the scariest thing out there.";
+  if (m === 12 && d >= 24 && d <= 26) return "Merry Christmas. Even I get a break today.";
+  if (m === 1 && d === 1) return "Happy New Year. Another year of being the strongest.";
+  if (m === 2 && d === 14) return "Valentine's Day. Obviously someone left a gift for me.";
+  return null;
+}
+
+function startClipboardPolling() {
+  lastClipboardText = clipboard.readText();
+  const clipboardReactions = [
+    "Copying homework?",
+    "Interesting... what's that for?",
+    "I saw that.",
+    "You copy, I judge.",
+    "Bold move.",
+    "Don't tell anyone I saw that.",
+    "*pretends not to notice*",
+  ];
+  clipboardPollTimer = setInterval(() => {
+    try {
+      const current = clipboard.readText();
+      if (current && current !== lastClipboardText && current.trim().length > 0) {
+        lastClipboardText = current;
+        // Only react 20% of the time to avoid being annoying
+        if (Math.random() < 0.20) {
+          const msg = clipboardReactions[Math.floor(Math.random() * clipboardReactions.length)];
+          showBubble({ text: msg, durationMs: 2500 });
+        }
+      }
+    } catch {}
+  }, 4000);
+}
+
 function createPetWindow() {
   const position = getInitialPetPosition();
   petWindow = new BrowserWindow({
@@ -299,18 +360,19 @@ function createBirthdayWindow() {
     return;
   }
 
-  const display = screen.getPrimaryDisplay();
+  const { bounds } = screen.getPrimaryDisplay();
 
   birthdayWindow = new BrowserWindow({
-    width: display.workArea.width,
-    height: display.workArea.height,
-    x: display.workArea.x,
-    y: display.workArea.y,
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
     frame: false,
-    fullscreen: true,
-    backgroundColor: "#0a0a1a",
+    backgroundColor: "#050208",
     alwaysOnTop: true,
     skipTaskbar: true,
+    resizable: false,
+    movable: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -322,7 +384,16 @@ function createBirthdayWindow() {
   birthdayWindow.loadFile(path.join(__dirname, "birthday/birthday.html"));
   birthdayWindow.on("closed", () => {
     birthdayWindow = null;
+    restorePetWindow();
   });
+}
+
+function restorePetWindow() {
+  if (!petWindow || petWindow.isDestroyed()) return;
+  petWindow.restore();
+  petWindow.show();
+  petWindow.setAlwaysOnTop(true, "screen-saver");
+  petWindow.focus();
 }
 
 function createSettingsWindow() {
@@ -399,7 +470,7 @@ function createChatWindow() {
 
 let lastBubblePos = { x: -999, y: -999 }; // Cache bubble position
 function positionBubble(anchor) {
-  if (!bubbleWindow || !anchor) {
+  if (!isWindowAvailable(bubbleWindow) || !anchor) {
     return;
   }
 
@@ -455,115 +526,110 @@ function hideBubble(afterMs = 300) {
   }, afterMs);
 }
 
-function showPetContextMenu() {
-  if (!petWindow) {
-    return;
+function getMoodText(val) {
+  if (val >= 80) return "😎 Perfect";
+  if (val >= 50) return "🙂 Good";
+  if (val >= 20) return "😐 Okay";
+  return "🤬 Annoyed";
+}
+
+function getEnergyText(val) {
+  if (val >= 80) return "⚡ Pumped";
+  if (val >= 40) return "🔋 Normal";
+  if (val >= 15) return "🪫 Low";
+  return "🥱 Exhausted";
+}
+
+function getHungerText(val) {
+  if (val >= 80) return "🍗 Full";
+  if (val >= 40) return "🍢 Fine";
+  if (val >= 15) return "🍡 Hungry";
+  return "🦴 Starving";
+}
+
+function closeContextMenu() {
+  if (contextMenuWindow && !contextMenuWindow.isDestroyed()) {
+    contextMenuWindow.close();
+    contextMenuWindow = null;
+  }
+}
+
+function createContextMenuWindow(x, y, data) {
+  closeContextMenu();
+  const MENU_W = 260;
+  const MENU_H = 440;
+  const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize;
+
+  // Position: prefer right of cursor, but avoid screen edge
+  let cx = x + 6;
+  let cy = y;
+  if (cx + MENU_W > sw - 8) cx = x - MENU_W - 6;
+  if (cy + MENU_H > sh - 8) cy = sh - MENU_H - 8;
+  cx = Math.max(8, cx);
+  cy = Math.max(8, cy);
+
+  // Make sure we don't overlap the pet window itself
+  if (petWindow && !petWindow.isDestroyed()) {
+    const pb = petWindow.getBounds();
+    const menuRight  = cx + MENU_W;
+    const menuBottom = cy + MENU_H;
+    const petRight   = pb.x + pb.width;
+    const petBottom  = pb.y + pb.height;
+    const overlapX = cx < petRight && menuRight > pb.x;
+    const overlapY = cy < petBottom && menuBottom > pb.y;
+    if (overlapX && overlapY) {
+      // Shift menu to left of pet if it originally opened on the right
+      if (cx >= pb.x) cx = pb.x - MENU_W - 8;
+      else cx = petRight + 8;
+      cx = Math.max(8, Math.min(cx, sw - MENU_W - 8));
+    }
   }
 
+  contextMenuWindow = new BrowserWindow({
+    x: cx, y: cy,
+    width: MENU_W, height: MENU_H,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    movable: false,
+    focusable: true,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "contextmenu", "contextmenu-preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  contextMenuWindow.loadFile(path.join(__dirname, "contextmenu", "contextmenu.html"));
+  contextMenuWindow.once("ready-to-show", () => {
+    contextMenuWindow?.show();
+    contextMenuWindow?.webContents.send("contextmenu:data", data);
+  });
+  contextMenuWindow.on("blur", () => {
+    setTimeout(closeContextMenu, 100);
+  });
+  contextMenuWindow.on("closed", () => {
+    contextMenuWindow = null;
+  });
+}
+
+function showPetContextMenu(isSleeping = false) {
+  if (!petWindow) return;
+  const cursor = screen.getCursorScreenPoint();
   const stats = getStats();
   const currentSettings = getSettings();
-  const menu = Menu.buildFromTemplate([
-    {
-      label: `♡ Mood: ${Math.round(stats.mood)}  ⚡ Energy: ${Math.round(stats.energy)}  🍡 Hunger: ${Math.round(stats.hunger)}`,
-      enabled: false,
-    },
-    { type: "separator" },
-    {
-      label: "Interact",
-      submenu: [
-        { label: "Feed", click: () => sendToWindow(petWindow, "menu:action", "feed") },
-        { label: "Pet Him", click: () => sendToWindow(petWindow, "menu:action", "pet") },
-        { label: "Say Hello", click: () => sendToWindow(petWindow, "menu:action", "hello") },
-        { label: "Dance!", click: () => sendToWindow(petWindow, "menu:action", "dance") }
-      ]
-    },
-    {
-      label: "Abilities",
-      submenu: [
-        { label: "Unlimited Void", click: () => sendToWindow(petWindow, "menu:action", "domain") },
-        { label: "Infinity", click: () => sendToWindow(petWindow, "menu:action", "infinity") },
-        { label: "Hollow Purple", click: () => sendToWindow(petWindow, "menu:action", "challenge") }
-      ]
-    },
-    { type: "separator" },
-    {
-      label: "Run Mode",
-      type: "checkbox",
-      checked: currentSettings.runMode,
-      click: () => {
-        const nextSettings = { ...currentSettings, runMode: !currentSettings.runMode };
-        store.set("settings", nextSettings);
-        broadcastSettings();
-        showBubble({ text: nextSettings.runMode ? "Run mode enabled." : "Run mode disabled.", durationMs: 2000 });
-      },
-    },
-    {
-      label: "Rizz Mode",
-      type: "checkbox",
-      checked: currentSettings.rizzMode,
-      click: () => {
-        const nextSettings = { ...currentSettings, rizzMode: !currentSettings.rizzMode };
-        store.set("settings", nextSettings);
-        broadcastSettings();
-        if (nextSettings.rizzMode) {
-          // Pick a random rizz message when activated
-          const rizzMessages = [
-            "Hey, baby girl.",
-            "You're cute. I'm cuter.",
-            "Wanna see my domain expansion?",
-            "I'm limitless... especially for you.",
-            "You caught my eye. Literally the strongest.",
-            "Ever met the strongest on the planet? Here I am.",
-            "That smile of yours is weak. Let me fix that.",
-            "I don't usually do this, but... hi.",
-            "Power and beauty? You're looking at both.",
-            "Infinity could never compare to you... actually, it could.",
-            "Want to experience true strength? Stick around.",
-            "I break hearts like I break barriers.",
-            "Strongest sorcerer. Strongest rizz too.",
-            "You're interesting. Don't disappear.",
-            "Yeah, I'm that guy."
-          ];
-          const msg = rizzMessages[Math.floor(Math.random() * rizzMessages.length)];
-          showBubble({ text: msg, durationMs: 3000 });
-        } else {
-          showBubble({ text: "Rizz mode disabled.", durationMs: 2000 });
-        }
-      },
-    },
-    { type: "separator" },
-    {
-      label: "Chat with Gojo",
-      click: () => {
-        createChatWindow();
-      },
-    },
-    { type: "separator" },
-    { label: "Sleep", click: () => sendToWindow(petWindow, "menu:action", "sleep") },
-    { label: "Wake Up", click: () => sendToWindow(petWindow, "menu:action", "wake") },
-    {
-      label: "🎂 Happy Birthday",
-      click: () => {
-        sendToWindow(petWindow, "menu:action", "birthday");
-        // Delay to let the popper animation play first, then open fullscreen celebration
-        setTimeout(() => createBirthdayWindow(), 1500);
-      },
-    },
-    { type: "separator" },
-    {
-      label: "Settings...",
-      click: () => {
-        closeChatWindow();
-        createSettingsWindow();
-        sendToWindow(petWindow, "menu:action", "settings");
-      },
-    },
-    { type: "separator" },
-    { label: "Quit", click: () => app.quit() },
-  ]);
-
-  menu.popup({ window: petWindow });
+  createContextMenuWindow(cursor.x, cursor.y, {
+    stats,
+    settings: currentSettings,
+    isSleeping,
+  });
 }
+
+
+
 
 function registerIpc() {
   handleIpc("pet:get-environment", () => getEnvironment());
@@ -581,6 +647,46 @@ function registerIpc() {
     petWindow?.setIgnoreMouseEvents(Boolean(ignore), { forward: true });
     return true;
   });
+  // Context menu actions
+  ipcMain.on("contextmenu:close", () => closeContextMenu());
+  ipcMain.on("contextmenu:action", (_, action, payload) => {
+    closeContextMenu();
+    if (action === "feed" || action === "pet" || action === "hello" || action === "dance" ||
+        action === "domain" || action === "infinity" || action === "challenge" ||
+        action === "sleep" || action === "wake" || action === "birthday") {
+      sendToWindow(petWindow, "menu:action", action);
+      if (action === "birthday") setTimeout(() => createBirthdayWindow(), 1500);
+    } else if (action === "chat") {
+      createChatWindow();
+    } else if (action === "settings") {
+      closeChatWindow();
+      createSettingsWindow();
+      sendToWindow(petWindow, "menu:action", "settings");
+    } else if (action === "quit") {
+      isQuitting = true;
+      app.quit();
+    } else if (action === "toggle-runMode") {
+      const cur = getSettings();
+      const next = { ...cur, runMode: Boolean(payload) };
+      store.set("settings", next);
+      broadcastSettings();
+      showBubble({ text: next.runMode ? "Run mode enabled." : "Run mode disabled.", durationMs: 2000 });
+    } else if (action === "toggle-rizzMode") {
+      const cur = getSettings();
+      const next = { ...cur, rizzMode: Boolean(payload) };
+      store.set("settings", next);
+      broadcastSettings();
+      if (next.rizzMode) {
+        const msgs = [
+          "Hey, baby girl.", "You're cute. I'm cuter.", "Wanna see my domain expansion?",
+          "Strongest sorcerer. Strongest rizz too.", "Yeah, I'm that guy."
+        ];
+        showBubble({ text: msgs[Math.floor(Math.random() * msgs.length)], durationMs: 3000 });
+      } else {
+        showBubble({ text: "Rizz mode disabled.", durationMs: 2000 });
+      }
+    }
+  });
   handleIpc("pet:show-bubble", (_, payload) => {
     showBubble(payload);
     return true;
@@ -593,8 +699,8 @@ function registerIpc() {
     hideBubble();
     return true;
   });
-  handleIpc("pet:show-context-menu", () => {
-    showPetContextMenu();
+  handleIpc("pet:show-context-menu", (_, isSleeping) => {
+    showPetContextMenu(isSleeping);
     return true;
   });
 
@@ -679,7 +785,15 @@ function registerIpc() {
   });
   handleIpc("birthday:close", () => {
     if (birthdayWindow && !birthdayWindow.isDestroyed()) {
-      birthdayWindow.close();
+      birthdayWindow.hide();
+      restorePetWindow();
+      setTimeout(() => {
+        if (birthdayWindow && !birthdayWindow.isDestroyed()) {
+          birthdayWindow.destroy();
+        }
+      }, 200);
+    } else {
+      restorePetWindow();
     }
     return true;
   });
@@ -739,17 +853,40 @@ app.whenReady().then(async () => {
   createPetWindow();
   createBubbleWindow();
   createHudWindow();
-  tray = createTray({
+  const trayResult = createTray({
     icon: createTrayIcon(),
     onToggle: () => toggleVisibility(),
     onShow: () => toggleVisibility(true),
     onHide: () => toggleVisibility(false),
+    onSummon: () => summonPet(),
     onSettings: () => createSettingsWindow(),
     onQuit: () => {
       isQuitting = true;
       app.quit();
     },
   });
+  tray = trayResult.tray || trayResult;
+  
+  // Live stats tray tooltip — update every 60 seconds
+  updateTrayTooltip();
+  setInterval(updateTrayTooltip, 60000);
+
+  // Global hotkey: Ctrl+Shift+G toggles visibility (Ctrl+Cmd+G on mac)
+  try {
+    const shortcut = process.platform === "darwin" ? "Command+Shift+G" : "Ctrl+Shift+G";
+    globalShortcut.register(shortcut, () => toggleVisibility());
+  } catch (err) {
+    logError("Failed to register global shortcut", err);
+  }
+
+  // Start clipboard snooping
+  startClipboardPolling();
+
+  // Seasonal greeting on first launch (once per day)
+  setTimeout(() => {
+    const greet = getSeasonalGreet();
+    if (greet) showBubble({ text: greet, durationMs: 5000 });
+  }, 3000);
 
   screen.on("display-metrics-changed", broadcastEnvironment);
   screen.on("display-added", broadcastEnvironment);
@@ -766,6 +903,8 @@ app.whenReady().then(async () => {
 
 app.on("before-quit", () => {
   isQuitting = true;
+  globalShortcut.unregisterAll();
+  clearInterval(clipboardPollTimer);
 });
 
 app.on("window-all-closed", (event) => {

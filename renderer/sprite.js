@@ -207,6 +207,14 @@
       this.FADE_MS = 220;
       this.fadeProgress = 1; // 0 = full A, 1 = full active (done)
       this.fading = false;
+
+      // Ensure video resumes if suspended by the OS/renderer when hidden
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && this.videoActive && this.videoActive.paused) {
+          const p = this.videoActive.play();
+          if (p?.catch) p.catch(() => {});
+        }
+      });
     }
 
     createVideo() {

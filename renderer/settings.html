@@ -241,12 +241,62 @@
       }
 
       .action-row {
-        display: grid;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: 12px;
+        margin-top: 10px;
       }
 
       .action-row button {
         width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, rgba(255, 117, 140, 0.2), rgba(255, 126, 179, 0.2));
+        border: 1px solid rgba(255, 117, 140, 0.5);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(255, 117, 140, 0.1);
+      }
+
+      .action-row button:hover {
+        background: linear-gradient(135deg, rgba(255, 117, 140, 0.35), rgba(255, 126, 179, 0.35));
+        border-color: rgba(255, 117, 140, 0.8);
+        box-shadow: 0 6px 18px rgba(255, 117, 140, 0.25);
+        transform: translateY(-1px);
+      }
+      
+      .action-row button:active {
+        transform: translateY(1px);
+      }
+      
+      /* Toast Notification */
+      #toast {
+        position: fixed;
+        bottom: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(18, 25, 48, 0.9);
+        border: 1px solid rgba(94, 168, 255, 0.3);
+        color: #a7d4ff;
+        padding: 10px 24px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+      
+      #toast.show {
+        bottom: 30px;
+        opacity: 1;
       }
 
       .hint {
@@ -295,7 +345,7 @@
 
       <section class="panel">
         <div class="section">
-          <p class="section-title">Core Controls</p>
+          <p class="section-title">⚙️ Core Controls</p>
 
           <div class="field field-row">
             <label for="alwaysOnTop">Always On Top</label>
@@ -338,8 +388,32 @@
           </div>
         </div>
 
+        <div class="section">
+          <p class="section-title">🏃 Behaviors</p>
+
+          <div class="field field-row">
+            <label for="runMode">Run Mode (Follows cursor)</label>
+            <label class="toggle-label">
+              <span class="switch">
+                <input id="runMode" type="checkbox" />
+                <span class="slider"></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="field field-row">
+            <label for="rizzMode">Rizz Mode</label>
+            <label class="toggle-label">
+              <span class="switch">
+                <input id="rizzMode" type="checkbox" />
+                <span class="slider"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
         <div class="section birthday-card">
-          <p class="section-title">Birthday Gift</p>
+          <p class="section-title">🎂 Birthday Gift</p>
           <h3>Personalize Celebration</h3>
           <p class="gemini-note">Add a birthday name and custom message for the special celebration.</p>
           <input id="birthdayName" class="input-text" type="text" placeholder="Friend's name" />
@@ -347,7 +421,7 @@
         </div>
 
         <div class="section gemini-card">
-          <p class="section-title">Gemini Brain</p>
+          <p class="section-title">🧠 Gemini Brain</p>
           <h3>AI Key</h3>
           <p class="gemini-note">Paste your Gemini API key here so Gojo can access the brain model securely.</p>
           <input id="geminiApiKey" class="input-text" type="password" placeholder="AI-SyzaX8..." />
@@ -355,7 +429,7 @@
         </div>
 
         <div class="section">
-          <p class="section-title">Audio</p>
+          <p class="section-title">🔊 Audio</p>
           <div class="field">
             <label for="volume">Volume</label>
             <input id="volume" type="range" min="0" max="1" step="0.05" />
@@ -371,6 +445,7 @@
 
     <div class="glow-ring one"></div>
     <div class="glow-ring two"></div>
+    <div id="toast">✓ Settings saved securely.</div>
 
     <script src="./settings.js"></script>
   </body>

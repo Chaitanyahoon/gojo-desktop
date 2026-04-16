@@ -37,6 +37,17 @@
     updateKeyStatus();
   }
 
+  let toastTimer;
+  function showToast() {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 2500);
+  }
+
   function bindControl(id) {
     const element = document.getElementById(id);
     if (!element) {
@@ -57,10 +68,11 @@
       if (id === "geminiApiKey") {
         updateKeyStatus();
       }
+      showToast();
     });
   }
 
-  ["alwaysOnTop", "walkSpeed", "interactionFrequency", "showSpeechBubbles", "startOnLogin", "volume", "birthdayName", "birthdayMessage", "geminiApiKey"].forEach(
+  ["alwaysOnTop", "walkSpeed", "interactionFrequency", "showSpeechBubbles", "startOnLogin", "volume", "birthdayName", "birthdayMessage", "geminiApiKey", "runMode", "rizzMode"].forEach(
     bindControl
   );
 
