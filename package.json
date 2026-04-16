@@ -1,7 +1,8 @@
 {
   "name": "gojo-pet",
   "version": "1.0.0",
-  "description": "Cross-platform Gojo Satoru desktop virtual pet built with Electron and Canvas.",
+  "description": "Gojo Satoru desktop pet — Windows app built with Electron.",
+  "author": "Chaitanyahoon",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -9,48 +10,55 @@
   },
   "build": {
     "appId": "com.gojopet.app",
-    "productName": "Gojo Satoru Pet",
-    "copyright": "Copyright © 2026",
+    "productName": "Gojo Pet",
+    "copyright": "Copyright © 2026 Chaitanya",
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.png",
+      "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Gojo Pet"
+      "shortcutName": "Gojo Pet",
+      "installerIcon": "assets/icon.png",
+      "uninstallerIcon": "assets/icon.png",
+      "deleteAppDataOnUninstall": false
     },
     "files": [
       "**/*",
-      "!node_modules/electron-builder/**",
       "!.git/**",
-      "!**/gojo-pet.log"
+      "!.gitignore",
+      "!**/gojo-pet.log",
+      "!**/*.md",
+      "!node_modules/electron-builder/**",
+      "!node_modules/.cache/**",
+      "!dist/**",
+      "!reference_frames/**"
+    ],
+    "extraResources": [
+      { "from": "reference_frames", "to": "reference_frames" }
     ],
     "directories": {
       "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Chaitanyahoon",
+      "repo": "gojo-desktop"
     }
   },
   "dependencies": {
     "auto-launch": "^5.0.6",
-    "electron": "^37.2.0",
     "electron-store": "^10.1.0"
   },
   "devDependencies": {
+    "electron": "^37.2.0",
     "electron-builder": "^24.13.3"
   }
 }
