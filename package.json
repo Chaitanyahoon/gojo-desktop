@@ -26,8 +26,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Gojo Pet",
-      "installerIcon": "assets/icon.png",
-      "uninstallerIcon": "assets/icon.png",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
       "deleteAppDataOnUninstall": false
     },
     "files": [
@@ -50,7 +50,8 @@
     "publish": {
       "provider": "github",
       "owner": "Chaitanyahoon",
-      "repo": "gojo-desktop"
+      "repo": "gojo-desktop",
+      "releaseType": "release"
     }
   },
   "dependencies": {

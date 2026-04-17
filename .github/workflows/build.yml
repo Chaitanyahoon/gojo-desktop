@@ -1,0 +1,47 @@
+name: Build & Release Gojo Pet
+
+on:
+  push:
+    tags:
+      - "v*"          # triggers on any tag like v1.0.0, v1.1.0, etc.
+
+permissions:
+  contents: write   # needed to create GitHub Releases
+
+jobs:
+  build-windows:
+    name: Build Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      # 1. Check out the full repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js (match your local version)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # 3. Install dependencies (skip scripts to avoid electron postinstall issues)
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Build the Windows NSIS installer + portable exe
+      #    GH_TOKEN lets electron-builder publish straight to GitHub Releases
+      - name: Build & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist -- --publish always
+
+      # 5. Upload artifacts so they appear in the Actions run summary too
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gojo-pet-windows
+          path: |
+            dist/*.exe
+            dist/*.yml
+          if-no-files-found: warn
