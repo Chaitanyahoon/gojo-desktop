@@ -1,6 +1,6 @@
 {
   "name": "gojo-pet",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Gojo Satoru desktop pet — Windows app built with Electron.",
   "author": "Chaitanyahoon",
   "main": "main.js",

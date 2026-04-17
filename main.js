@@ -633,6 +633,7 @@ function showPetContextMenu(isSleeping = false) {
 
 
 function registerIpc() {
+  handleIpc("app:resources-path", () => process.resourcesPath);
   handleIpc("pet:get-environment", () => getEnvironment());
   handleIpc("pet:get-cursor", () => screen.getCursorScreenPoint());
   handleIpc("pet:set-position", (_, position) => {

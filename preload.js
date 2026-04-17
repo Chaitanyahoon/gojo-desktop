@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
+  getResourcesPath: () => ipcRenderer.invoke("app:resources-path"),
   getEnvironment: () => ipcRenderer.invoke("pet:get-environment"),
   getCursor: () => ipcRenderer.invoke("pet:get-cursor"),
   setPetPosition: (position) => ipcRenderer.invoke("pet:set-position", position),

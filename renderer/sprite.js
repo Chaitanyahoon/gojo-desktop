@@ -1,6 +1,36 @@
 (() => {
   const ns = (window.GojoPet = window.GojoPet || {});
 
+  // ── Path resolution ──────────────────────────────────────────────────────────
+  // In dev:       reference_frames/ sits next to renderer/ → "../reference_frames/"
+  // In packaged:  it's extracted to resources/reference_frames/ by extraResources
+  //               Relative "../" paths break inside asar, so we use an absolute
+  //               file:// URL built from process.resourcesPath exposed via IPC.
+  let _resolvedBase = null; // cache, set once init() resolves
+
+  async function resolveVideoBase() {
+    if (_resolvedBase !== null) return _resolvedBase;
+    try {
+      const rp = await window.electronAPI.getResourcesPath();
+      if (rp) {
+        // Convert Windows backslashes → forward slashes for file:// URL
+        const normalized = rp.replace(/\\/g, "/");
+        _resolvedBase = "file:///" + normalized + "/reference_frames/";
+        return _resolvedBase;
+      }
+    } catch {}
+    // Fallback to relative path (dev mode)
+    _resolvedBase = "../reference_frames/";
+    return _resolvedBase;
+  }
+
+  function clipSrcToAbsolute(src, base) {
+    // src is like "../reference_frames/idle.mp4" — strip the relative prefix
+    const filename = src.replace(/^.*reference_frames\//, "");
+    return base + filename;
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const WINDOW_W = 120;
   const WINDOW_H = 180;
   const SAMPLE_STEP = 4;
@@ -242,10 +272,13 @@
       this.onPlaybackEnd = handler;
     }
 
-    play(state, options = {}) {
+    async play(state, options = {}) {
       const clipName = state in CLIPS ? state : "IDLE";
       const clip = CLIPS[clipName];
-      const src = new URL(clip.src, document.baseURI).href;
+
+      // Resolve the correct base path (absolute in packaged app, relative in dev)
+      const base = await resolveVideoBase();
+      const src = clipSrcToAbsolute(clip.src, base);
 
       // Nothing changed — same src already playing
       if (src === this.activeSrc && clipName === this.activeClip) {
@@ -305,6 +338,7 @@
       pending.src = src;
       pending.load();
     }
+
 
     // Called every frame from pet.js loop — advances cross-fade
     tickFade(now) {
